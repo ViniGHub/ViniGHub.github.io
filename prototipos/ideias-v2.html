@@ -87,6 +87,22 @@
   .idea p { color:var(--soft); line-height:1.55; font-size:15px; margin-top:8px; }
   .idea .mono { display:block; margin-bottom:6px; color:var(--accent); }
 
+  /* Live demo modal: the demo gets almost the whole screen instead of a small box. */
+  .modal-bg { position:fixed; inset:0; z-index:70; background:rgba(5,6,7,.78); display:none; align-items:center; justify-content:center; padding:3vh 3vw; }
+  .modal-bg.on { display:flex; }
+  .modal { width:min(1440px, 100%); height:100%; display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--line-2); box-shadow:0 50px 120px -40px rgba(0,0,0,.9); }
+  .modal .bar { display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid var(--line); }
+  .modal .bar .url { flex:1; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--soft); background:var(--node); border:1px solid var(--line); padding:6px 10px; }
+  .modal .bar a, .modal .bar button { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text); background:transparent; border:1px solid var(--line-2); padding:6px 10px; cursor:pointer; }
+  .modal .bar a:hover, .modal .bar button:hover { border-color:var(--accent); color:var(--accent); }
+  .modal .body { position:relative; flex:1; background:#EFE6D4; }
+  .modal iframe { width:100%; height:100%; border:0; display:block; }
+  .modal .loading { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:var(--bg); transition:opacity .5s; }
+  .modal .loading.off { opacity:0; pointer-events:none; }
+  .modal .loading i { width:180px; height:2px; background:var(--line-2); position:relative; overflow:hidden; }
+  .modal .loading i::after { content:""; position:absolute; inset:0; width:40%; background:var(--accent); animation:slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { transform:translateX(-100%); } to { transform:translateX(250%); } }
+
   /* Command palette */
   .palette-bg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:60; display:none; align-items:flex-start; justify-content:center; padding-top:16vh; }
   .palette-bg.on { display:flex; }
@@ -122,8 +138,8 @@
 
   <div class="opt">
     <div class="txt"><span class="tag">1</span><h2>Janela ao vivo</h2>
-      <p>A captura real dentro de uma janela de navegador. Ao passar o mouse, aparece o convite; ao clicar, a própria demo abre ali dentro, sem sair do portfólio.</p>
-      <ul><li>bom para: agenda-ia (demo pública com agenda fictícia)</li><li>cuidado: a demo pode levar ~1 min para acordar</li></ul>
+      <p>A captura real dentro de uma janela de navegador. Ao passar o mouse, aparece o convite; ao clicar, a demo de verdade abre num modal que ocupa quase a tela toda, sem sair do portfólio. Esc ou clique fora fecha.</p>
+      <ul><li>bom para: agenda-ia (demo pública com agenda fictícia)</li><li>enquanto a demo acorda (até ~1 min), o modal avisa</li></ul>
     </div>
     <div class="browser"><div class="bar"><span class="url">agenda-ia.web.app/#demo</span><a href="https://agenda-ia.web.app/#demo" target="_blank" rel="noreferrer">abrir ↗</a></div>
       <div class="screen" id="live"><img src="img/agenda-ia-resposta.jpg" alt="agenda-ia respondendo 'Quando é o dentista?' com a fonte destacada no calendário"><button class="try" id="try"><span>▶ testar aqui mesmo</span></button></div>
@@ -173,6 +189,11 @@
     <div class="idea"><span class="mono">ideia c · guardada</span><h3>Modo explorar</h3><p>O ambiente 3D da mesa como uma página extra ("explorar em 3D"), sem mudar o site principal.</p></div>
   </div>
 </div></section>
+
+<div class="modal-bg" id="modal" role="dialog" aria-modal="true" aria-label="Demo do agenda-ia"><div class="modal">
+  <div class="bar"><span class="url">agenda-ia.web.app/#demo · agenda fictícia</span><a href="https://agenda-ia.web.app/#demo" target="_blank" rel="noreferrer">abrir em nova aba ↗</a><button id="modal-close" aria-label="Fechar">fechar · esc</button></div>
+  <div class="body"><div class="loading" id="modal-loading"><span class="mono" style="color:var(--text)">acordando a demo…</span><i></i><span class="mono">o servidor dorme quando ninguém usa; pode levar até 1 minuto</span></div></div>
+</div></div>
 
 <div class="palette-bg" id="palette"><div class="palette">
   <input id="pq" placeholder="digite um comando…" autocomplete="off">
@@ -312,10 +333,28 @@
     return { root, tick: (t) => { root.children.forEach((line, i) => { line.material.opacity = 0.55 + 0.45 * Math.max(0, Math.sin(t * 2 - i * 0.18)); }); } };
   });
 
-  // 1 · the live window turns into the real demo when clicked.
-  document.getElementById('try').addEventListener('click', () => {
-    document.getElementById('live').innerHTML = '<iframe src="https://agenda-ia.web.app/#demo" title="Demo do agenda-ia"></iframe>';
-  });
+  // 1 · the live window opens the real demo in a large modal. The iframe is created on open and removed
+  // on close, so the demo only loads (and wakes its server) when someone asks for it.
+  const modal = document.getElementById('modal'), modalBody = modal.querySelector('.body'), loading = document.getElementById('modal-loading');
+  const openDemo = () => {
+    loading.classList.remove('off');
+    const frame = document.createElement('iframe');
+    frame.src = 'https://agenda-ia.web.app/#demo'; frame.title = 'Demo do agenda-ia'; frame.allow = 'microphone';
+    frame.addEventListener('load', () => setTimeout(() => loading.classList.add('off'), 400));
+    modalBody.appendChild(frame);
+    modal.classList.add('on'); document.body.style.overflow = 'hidden';
+    gsap.fromTo('.modal', { y: 30, opacity: 0, scale: 0.98 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' });
+    document.getElementById('modal-close').focus();
+  };
+  const closeDemo = () => {
+    modal.classList.remove('on'); document.body.style.overflow = '';
+    modalBody.querySelector('iframe')?.remove();
+    document.getElementById('try').focus();
+  };
+  document.getElementById('try').addEventListener('click', openDemo);
+  document.getElementById('modal-close').addEventListener('click', closeDemo);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeDemo(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('on')) closeDemo(); });
 
   // 2 · the TicketFlow toy: buying reserves stock once; a repeated webhook changes nothing.
   const tlog = document.getElementById('tlog');
@@ -354,7 +393,7 @@
     ['ir para o avatar', () => scrollTo({ top: 0, behavior: 'smooth' }), 'seção 1'],
     ['ir para a vitrine dos projetos', () => document.getElementById('vitrine').scrollIntoView({ behavior: 'smooth' }), 'seção 2'],
     ['testar o TicketFlow (mini-demo)', () => document.getElementById('buy').scrollIntoView({ behavior: 'smooth', block: 'center' }), 'jogar'],
-    ['abrir a demo do agenda-ia', () => open('https://agenda-ia.web.app/#demo', '_blank'), 'nova aba'],
+    ['testar o agenda-ia aqui (modal)', () => openDemo(), 'modal'],
     ['abrir o Sinal', () => open('https://vinighub.github.io/sinal-app/', '_blank'), 'nova aba'],
     ['abrir o GitHub', () => open('https://github.com/ViniGHub', '_blank'), 'nova aba'],
   ];
