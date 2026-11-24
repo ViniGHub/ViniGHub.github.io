@@ -22,7 +22,7 @@ export const profile = {
    * The 3D model of the hero, a GLB in public/ (for example '/models/avatar.glb').
    * While it is null, the page draws the placeholder bust. See docs/gerar-avatar.md.
    */
-  avatarModel: null as string | null,
+  avatarModel: '/models/avatar.glb' as string | null,
   links: [
     { label: 'linkedin', href: 'https://www.linkedin.com/in/vini-rodri' },
     { label: 'github', href: 'https://github.com/ViniGHub' },

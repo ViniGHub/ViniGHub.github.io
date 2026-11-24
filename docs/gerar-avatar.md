@@ -25,11 +25,13 @@ O modelo continua reconhecível como você, mas desenhado como personagem. Leva 
 
    Gere algumas variações e escolha a mais parecida com você.
 2. **Modelo 3D:** no **Meshy** (https://www.meshy.ai) ou no **Tripo** (https://www.tripo3d.ai), use **Image to 3D** com essa ilustração. Escolha a melhor das variações, gere a textura e baixe em **GLB**.
-3. **Opcional, para só a cabeça se mexer:** gere a ilustração de **corpo inteiro, em pé, braços um pouco abertos**, e use o **Rig** (esqueleto automático) do Meshy ou do Tripo antes de baixar. Com esqueleto, a cabeça segue o mouse e o corpo fica parado. Sem esqueleto, o busto inteiro gira um pouco, o que também funciona.
+   - **No Meshy grátis, escolha o modelo "Meshy 6 Lite"** na área **Modelo** (seletor no alto do painel esquerdo). Só ele tem download grátis (10 por mês, em 11/2026). O Agente e os modelos Meshy 6 e 7.1 geram, mas o botão Baixar pede assinatura.
+   - Custo do Lite: 10 créditos a malha e mais 10 a textura (botão **Textura** embaixo do modelo).
+3. **Só a cabeça se mexe**, mesmo sem esqueleto: o site acha o pescoço na malha e gira só o que está acima dele (veja "Depois que o GLB existir"). Se o modelo vier com **Rig** (esqueleto automático, que exige corpo inteiro), o site usa o osso da cabeça.
 
 **Limites:**
 - Os planos gratuitos têm cota de créditos e de downloads.
-- Os modelos do plano gratuito costumam sair com licença CC BY 4.0. Para um portfólio pessoal, basta um crédito no rodapé ("avatar gerado com Meshy").
+- Os modelos do plano gratuito saem com licença CC BY 4.0, que pede crédito. O rodapé do site já mostra "avatar 3D gerado no Meshy · CC BY 4.0" sempre que há um modelo.
 - Esse modelo não traz expressões. Piscar e sorrir só seriam possíveis com um modelo feito à mão (caminhos 2 e 3).
 
 ### 2. VRoid Studio (estilo anime, o mais vivo)
@@ -66,8 +68,15 @@ Peça um "stylized 3D bust from photo" no Fiverr, no ArtStation ou no Behance, c
 
 ## Depois que o GLB existir (minha parte)
 
-- **Comprimir** com gltf-transform (Draco ou meshopt), para o arquivo ficar com poucos MB.
-- **Enquadrar** só cabeça e ombros, deixando o resto do corpo de fora.
+- **Comprimir** com gltf-transform. O modelo atual passou de 9,1 MB para 421 KB com este comando (malha de 117 mil para 47 mil triângulos, texturas WebP de 1024, meshopt):
+
+  ```powershell
+  npx @gltf-transform/cli@4 optimize entrada.glb public/models/avatar.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-ratio 0.4 --simplify-error 0.001
+  ```
+
+  O `Avatar.tsx` já liga o decodificador meshopt no carregador.
+- **Enquadrar:** o site encaixa o busto pela altura e pela largura do quadro e esconde o corte da base num degradê.
+- **Cabeça que segue o mouse sem esqueleto:** o `Avatar.tsx` procura o pescoço (a fatia mais estreita da malha entre os ombros e o queixo) e, no shader, gira só o que fica acima dele. A rotação some ao longo do pescoço, então a camiseta não se mexe.
 - **Aplicar o acabamento escolhido** (escultura, scan em pontos ou curvas de nível) e **animar**:
   - a cabeça segue o mouse;
   - o rosto pisca e sorri, usando as expressões do arquivo;
