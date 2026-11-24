@@ -1,9 +1,9 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-
-/** Where the pointer is on the whole window, from -1 to 1. Shared by the scene and the coordinates label. */
-export const pointer = { x: 0, y: 0 }
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { profile } from '@/content/profile'
+import { pointer, trackPointer } from '@/lib/pointer'
 
 const COLORS = { skin: '#7b8189', hair: '#2a2d31', shirt: '#1b1e22', dark: '#0c0d0f' }
 
@@ -87,16 +87,71 @@ function Bust() {
   )
 }
 
+/** Height, in scene units, that the visible part of a model is scaled to; its top sits at TOP_Y. */
+const MODEL_HEIGHT = 3
+const TOP_Y = 1.25
+
+/** A node whose name ends in "head" (Meshy and Mixamo rigs call the bone Head or mixamorig:Head). */
+function findHead(root: THREE.Object3D) {
+  let head: THREE.Object3D | null = null
+  root.traverse((node) => {
+    if (!head && /head$/i.test(node.name)) head = node
+  })
+  return head as THREE.Object3D | null
+}
+
+/**
+ * The person's own model (a GLB). A bust is shown whole; a standing character is framed from the chest
+ * up. With a head bone (or a node named Head), only the head follows the pointer; otherwise the whole
+ * model turns a little.
+ */
+function Model({ url }: { url: string }) {
+  const gltf = useLoader(GLTFLoader, url)
+  const breathing = useRef<THREE.Group>(null!)
+  const turning = useRef<THREE.Group>(null!)
+
+  // Only numbers are computed here; the loaded scene itself is never moved, the groups around it are.
+  const fit = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(gltf.scene)
+    const size = box.getSize(new THREE.Vector3())
+    const center = box.getCenter(new THREE.Vector3())
+    const standing = size.y > size.x * 1.6
+    const scale = MODEL_HEIGHT / (standing ? size.y * 0.32 : size.y)
+    const head = findHead(gltf.scene)
+    return {
+      scale,
+      offset: [-center.x, TOP_Y / scale - box.max.y, -center.z] as [number, number, number],
+      head,
+      headRest: head ? head.rotation.clone() : null,
+    }
+  }, [gltf])
+
+  useFrame(({ clock }) => {
+    const { head, headRest } = fit
+    if (head && headRest) {
+      head.rotation.y += (headRest.y + pointer.x * 0.5 - head.rotation.y) * 0.08
+      head.rotation.x += (headRest.x + pointer.y * 0.25 - head.rotation.x) * 0.08
+    } else {
+      turning.current.rotation.y += (pointer.x * 0.35 - turning.current.rotation.y) * 0.06
+      turning.current.rotation.x += (pointer.y * 0.1 - turning.current.rotation.x) * 0.06
+    }
+    breathing.current.position.y = Math.sin(clock.elapsedTime * 1.7) * 0.015
+  })
+
+  return (
+    <group ref={breathing}>
+      <group ref={turning} scale={fit.scale}>
+        <group position={fit.offset}>
+          <primitive object={gltf.scene} />
+        </group>
+      </group>
+    </group>
+  )
+}
+
 /** The 3D viewport of the hero. Loaded on its own, after the text, because three.js is heavy. */
 export default function Avatar() {
-  useEffect(() => {
-    const onMove = (event: PointerEvent) => {
-      pointer.x = Math.max(-1, Math.min(1, (event.clientX / window.innerWidth) * 2 - 1))
-      pointer.y = Math.max(-1, Math.min(1, (event.clientY / window.innerHeight) * 2 - 1))
-    }
-    window.addEventListener('pointermove', onMove)
-    return () => window.removeEventListener('pointermove', onMove)
-  }, [])
+  useEffect(trackPointer, [])
 
   return (
     <Canvas
@@ -105,13 +160,19 @@ export default function Avatar() {
       gl={{ antialias: true, alpha: true }}
       camera={{ fov: 30, position: [0, -0.35, 7.4] }}
       onCreated={({ camera }) => camera.lookAt(0, -0.45, 0)}
-      aria-label="Avatar 3D provisório; a cabeça acompanha o mouse"
+      aria-label="Avatar 3D de Vinicius; a cabeça acompanha o mouse"
     >
       {/* three.js measures light physically, so these are about π times the old "legacy" values. */}
       <ambientLight intensity={1} />
       <directionalLight position={[3, 2, 4]} intensity={2.5} />
       <directionalLight position={[-4, 2, -3]} intensity={4.4} color="#c6f35e" />
-      <Bust />
+      {profile.avatarModel ? (
+        <Suspense fallback={null}>
+          <Model url={profile.avatarModel} />
+        </Suspense>
+      ) : (
+        <Bust />
+      )}
     </Canvas>
   )
 }

@@ -6,6 +6,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  // The prototypes and the docs are not part of the site; watching their images crashed the dev server
+  // on Windows (EBUSY while a file was being copied).
+  server: { watch: { ignored: ['**/prototipos/**', '**/docs/**'] } },
   build: {
     rollupOptions: {
       output: {

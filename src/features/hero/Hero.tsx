@@ -45,7 +45,7 @@ export function Hero() {
   return (
     <section ref={root} id="inicio" className="relative mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-[1200px] items-center gap-12 px-8 pt-10 pb-24 md:grid-cols-[0.9fr_1.1fr]">
       <div data-viewport className="grid-paper relative h-[min(70vh,580px)] border border-line max-md:h-[380px]">
-        <span className="label absolute top-0 left-0 px-3 py-2.5">avatar.glb · provisório</span>
+        <span className="label absolute top-0 left-0 px-3 py-2.5">{profile.avatarModel ? 'avatar.glb' : 'avatar.glb · provisório'}</span>
         <Suspense fallback={null}>
           <Avatar />
         </Suspense>
