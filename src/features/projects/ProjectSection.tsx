@@ -69,7 +69,8 @@ export function ProjectSection({ project, index, total }: { project: Project; in
           </div>
         </header>
 
-        <div ref={system} className="grid gap-6 md:grid-cols-[1.25fr_0.75fr]">
+        {/* minmax(0, …): the log lines never wrap, and without it they would stretch the column past the screen on phones. */}
+        <div ref={system} className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
           <figure className="border border-line bg-panel p-4">
             <figcaption className="label mb-2 flex justify-between"><span>// {project.diagram.caption}</span><span aria-hidden>role ↓</span></figcaption>
             <SystemDiagram diagram={project.diagram} />
