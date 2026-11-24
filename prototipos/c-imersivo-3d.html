@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo C · Imersivo 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#1C1A21; --text:#F4EEE6; --muted:#A79E95; --accent:#FF7A45; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { background:var(--bg); color:var(--text); }
+  body { font-family:'Bricolage Grotesque',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.04em; color:var(--muted); }
+  canvas#scene { position:fixed; inset:0; width:100vw; height:100vh; display:block; }
+  .proto { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; justify-content:space-between; padding:8px 24px; background:var(--accent); }
+  .proto .mono { color:#1C1A21; } .proto a { color:#1C1A21; margin-left:14px; opacity:.6; text-decoration:none; } .proto a.on { opacity:1; text-decoration:underline; }
+  nav { position:fixed; top:34px; left:0; right:0; z-index:10; display:flex; justify-content:space-between; padding:20px 32px; }
+  nav b { font-weight:700; font-size:20px; letter-spacing:-.02em; }
+  .dots { display:flex; gap:10px; align-items:center; }
+  .dots i { width:8px; height:8px; border-radius:50%; border:1px solid var(--muted); transition:background .3s, border-color .3s, transform .3s; }
+  .dots i.on { background:var(--accent); border-color:var(--accent); transform:scale(1.3); }
+  .overlay { position:fixed; left:32px; bottom:40px; z-index:10; width:min(460px, calc(100vw - 64px)); pointer-events:none; }
+  .card { position:absolute; left:0; bottom:0; width:100%; opacity:0; transform:translateY(24px); transition:opacity .6s, transform .6s cubic-bezier(.2,.7,.2,1);
+          background:rgba(24,22,29,.88); border-left:3px solid var(--accent); padding:22px 26px 24px; }
+  .card.on { opacity:1; transform:none; }
+  .card h2 { font-size:clamp(40px,5.4vw,76px); line-height:.92; letter-spacing:-.035em; margin:10px 0 14px; font-weight:700; }
+  .card h2 em { font-style:normal; color:var(--accent); }
+  .card p { font-size:17px; line-height:1.55; color:#DDD4CA; text-shadow:0 1px 12px rgba(0,0,0,.6); }
+  .card .tags { margin-top:16px; }
+  .hint { position:fixed; right:32px; bottom:40px; z-index:10; transition:opacity .4s; }
+  .track { height:600vh; }
+</style>
+</head>
+<body>
+<div class="proto"><span class="mono">Protótipo C de 3 · Imersivo 3D · direção visual, não é o site final</span><span class="mono"><a href="a-caderno-tecnico.html">A</a><a href="b-engenharia-escura.html">B</a><a class="on" href="c-imersivo-3d.html">C</a></span></div>
+<canvas id="scene"></canvas>
+<nav><b>Vinicius Rodrigues</b><span class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i></span></nav>
+
+<div class="overlay">
+  <div class="card on"><span class="mono">desenvolvedor front-end · são paulo</span><h2>Bem-vindo ao <em>meu canto</em>.</h2><p>React, Angular e .NET no trabalho; IA, pagamentos e WebRTC nos projetos. Role para dar uma volta pela mesa.</p></div>
+  <div class="card"><span class="mono">01 · no monitor</span><h2>agenda-ia</h2><p>Pergunte em português sobre a sua agenda. A resposta cita o compromisso, e a anotação aceita voz.</p><p class="mono tags">python · fastapi · groq · cloud run</p></div>
+  <div class="card"><span class="mono">02 · no celular</span><h2>Sinal</h2><p>Voz e tela direto entre navegadores, via WebRTC. Só o primeiro contato passa por um servidor.</p><p class="mono tags">typescript · webrtc · peerjs</p></div>
+  <div class="card"><span class="mono">03 · em cima da mesa</span><h2>TicketFlow</h2><p>Ingressos sem overselling e sem cobrança duplicada: reserva atômica, webhooks idempotentes, outbox.</p><p class="mono tags">next.js · nestjs · stripe</p></div>
+  <div class="card"><span class="mono">contato</span><h2>Bora <em>conversar</em>?</h2><p>Procuro minha próxima vaga em produto. LinkedIn, GitHub e e-mail ficam aqui.</p></div>
+</div>
+<span class="hint mono" id="hint">role ↓</span>
+<div class="track" id="track"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="bust.js"></script>
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+  if (window.Lenis) {
+    const lenis = new Lenis({ lerp: 0.08 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((t) => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene'), antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.setClearColor(0x1C1A21);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x1C1A21, 6, 14);
+  const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 50);
+
+  scene.add(new THREE.HemisphereLight(0xFFE9D6, 0x2A2633, 0.65));
+  const sun = new THREE.DirectionalLight(0xFFD2A8, 0.95); sun.position.set(3, 4, 3); scene.add(sun);
+  const glow = new THREE.PointLight(0x9FC4FF, 0.7, 3); glow.position.set(0.55, 0.7, 0.2); scene.add(glow);
+  const lamp = new THREE.PointLight(0xFF7A45, 0.8, 4); lamp.position.set(-1.7, 1.4, 0.2); scene.add(lamp);
+
+  const std = (color, rough = 0.85) => new THREE.MeshStandardMaterial({ color, roughness: rough });
+  const box = (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); scene.add(m); return m; };
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), std(0x24212A, 1)); floor.rotation.x = -Math.PI / 2; floor.position.y = -0.85; scene.add(floor);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 12), std(0x2D2A35, 1)); wall.position.set(0, 4, -2.4); scene.add(wall);
+  const wood = std(0x7A563C, 0.7);
+  box(3.6, 0.08, 1.5, wood, 0, -0.04, 0);
+  for (const [x, z] of [[-1.7, -0.65], [1.7, -0.65], [-1.7, 0.65], [1.7, 0.65]]) box(0.06, 0.8, 0.06, wood, x, -0.45, z);
+  const dark = std(0x18171C, 0.5);
+  box(0.1, 0.3, 0.1, dark, 0.55, 0.15, -0.4);
+  box(0.4, 0.02, 0.25, dark, 0.55, 0.01, -0.4);
+  box(1.36, 0.84, 0.05, dark, 0.55, 0.64, -0.38);
+
+  // Screens are drawn on canvases, so the real site can show real screenshots the same way.
+  function screen(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+  }
+  function round(g, x, y, w, h, r, fill) { g.fillStyle = fill; g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.fill(); }
+
+  document.fonts.ready.then(() => {
+    const agenda = screen(1024, 620, (g, w, h) => {
+      g.fillStyle = '#F3EFE6'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#1D1B17'; g.font = '700 44px "Bricolage Grotesque"'; g.fillText('agenda-ia', 40, 70);
+      g.fillStyle = '#D9472B'; g.fillRect(40, 92, 120, 4);
+      round(g, 520, 130, 440, 70, 14, '#1D1B17'); g.fillStyle = '#F3EFE6'; g.font = '28px "DM Mono"'; g.fillText('o que tenho na quinta?', 548, 175);
+      round(g, 40, 230, 560, 130, 14, '#FFFFFF'); g.fillStyle = '#1D1B17'; g.font = '28px "DM Mono"';
+      g.fillText('Dentista às 15h [1] e', 68, 285); g.fillText('reunião com a padaria às 17h [2].', 68, 330);
+      [['#F7E08A', 640, 250], ['#F4B9A6', 800, 300], ['#BFE3C7', 680, 420]].forEach(([c, x, y], i) => { g.save(); g.translate(x, y); g.rotate((i - 1) * 0.08); g.fillStyle = c; g.fillRect(0, 0, 140, 120); g.restore(); });
+      round(g, 40, 520, 944, 64, 32, '#EAE4D6'); g.fillStyle = '#6E675C'; g.font = '26px "DM Mono"'; g.fillText('pergunte ou anote…', 72, 562);
+    });
+    const monitor = new THREE.Mesh(new THREE.PlaneGeometry(1.28, 0.775), new THREE.MeshBasicMaterial({ map: agenda, toneMapped: false }));
+    monitor.position.set(0.55, 0.64, -0.354); scene.add(monitor);
+
+    const sinal = screen(360, 720, (g, w, h) => {
+      g.fillStyle = '#101014'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#F4EEE6'; g.font = '700 36px "Bricolage Grotesque"'; g.fillText('Sinal', 30, 70);
+      g.fillStyle = '#A79E95'; g.font = '20px "DM Mono"'; g.fillText('chamada p2p · 00:42', 30, 104);
+      [[180, 260, '#FF7A45'], [180, 450, '#6FA8FF']].forEach(([x, y, c]) => { g.fillStyle = c; g.beginPath(); g.arc(x, y, 70, 0, Math.PI * 2); g.fill(); });
+      [[110, '#E5484D'], [250, '#3DD68C']].forEach(([x, c]) => { g.fillStyle = c; g.beginPath(); g.arc(x, 630, 36, 0, Math.PI * 2); g.fill(); });
+    });
+    const phone = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.6), dark); phone.add(body);
+    const phoneScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.27, 0.56), new THREE.MeshBasicMaterial({ map: sinal, toneMapped: false }));
+    phoneScreen.rotation.x = -Math.PI / 2; phoneScreen.position.y = 0.011; phone.add(phoneScreen);
+    phone.position.set(1.25, 0.01, 0.35); phone.rotation.y = -0.35; scene.add(phone);
+
+    const ticketTex = screen(600, 300, (g, w, h) => {
+      g.fillStyle = '#F6E7C8'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#FF7A45'; g.fillRect(0, 0, 18, h);
+      g.fillStyle = '#1C1A21'; g.font = '700 54px "Bricolage Grotesque"'; g.fillText('TicketFlow', 48, 92);
+      g.font = '26px "DM Mono"'; g.fillText('ADMIT ONE · #A-0042', 48, 150);
+      g.setLineDash([10, 10]); g.strokeStyle = '#1C1A21'; g.lineWidth = 3; g.beginPath(); g.moveTo(440, 20); g.lineTo(440, 280); g.stroke();
+      g.font = '22px "DM Mono"'; g.fillText('pago 1x', 470, 150);
+    });
+    const ticket = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.3), new THREE.MeshStandardMaterial({ map: ticketTex, roughness: 0.9 }));
+    ticket.rotation.x = -Math.PI / 2; ticket.rotation.z = 0.25; ticket.position.set(-0.35, 0.002, 0.45); scene.add(ticket);
+  });
+
+  const bust = window.makeBust(THREE, 'toon', { skin: 0xF0C7A2, hair: 0x2A2220, shirt: 0xFF7A45, eyes: 0x1C1A21 });
+  bust.scale.setScalar(0.55); bust.position.set(-1.25, 0.95, -1.15); bust.rotation.y = 0.3; scene.add(bust);
+  addEventListener('pointermove', (e) => bust.userData.look((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1));
+
+  // The camera visits five stops; the scroll position is the playhead.
+  const stops = [
+    [0.0, 1.5, 4.6, -0.3, 0.5, -0.5],
+    [0.55, 0.66, 1.15, 0.55, 0.62, -0.35],
+    [1.3, 1.05, 0.95, 1.25, 0.0, 0.35],
+    [-0.3, 0.85, 1.15, -0.35, 0.0, 0.45],
+    [-0.95, 1.2, 1.25, -1.25, 1.05, -1.15],
+  ];
+  const cam = { px: stops[0][0], py: stops[0][1], pz: stops[0][2], tx: stops[0][3], ty: stops[0][4], tz: stops[0][5] };
+  const tl = gsap.timeline({ scrollTrigger: { trigger: '#track', start: 'top top', end: 'bottom bottom', scrub: 1,
+    onUpdate: (self) => {
+      const i = Math.round(self.progress * (stops.length - 1));
+      document.querySelectorAll('.card').forEach((c, k) => c.classList.toggle('on', k === i));
+      document.querySelectorAll('#dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+      document.getElementById('hint').style.opacity = self.progress > 0.02 ? 0 : 1;
+    } } });
+  stops.slice(1).forEach(([px, py, pz, tx, ty, tz]) => tl.to(cam, { px, py, pz, tx, ty, tz, duration: 1, ease: 'power2.inOut' }));
+
+  const resize = () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); };
+  addEventListener('resize', resize); resize();
+  const clock = new THREE.Clock();
+  (function loop() {
+    const t = clock.getElapsedTime();
+    bust.userData.update(t);
+    camera.position.set(cam.px, cam.py + Math.sin(t * 0.6) * 0.01, cam.pz);
+    camera.lookAt(cam.tx, cam.ty, cam.tz);
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  })();
+</script>
+</body>
+</html>

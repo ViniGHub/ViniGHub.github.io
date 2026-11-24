@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo B · Engenharia escura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0C0D0F; --panel:#131518; --line:#262A30; --line-2:#33373E; --text:#E7E5E0; --muted:#878C95; --accent:#C6F35E; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { background:var(--bg); }
+  body { font-family:'Geist',system-ui,sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+  .mono { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); }
+  .proto { position:sticky; top:0; z-index:30; display:flex; justify-content:space-between; padding:8px 24px; background:var(--accent); }
+  .proto .mono { color:#0C0D0F; } .proto a { margin-left:14px; opacity:.6; } .proto a.on { opacity:1; text-decoration:underline; }
+  .wrap { max-width:1200px; margin:0 auto; padding:0 32px; }
+  .topbar { position:sticky; top:31px; z-index:28; background:var(--bg); border-bottom:1px solid var(--line); }
+  nav { display:flex; justify-content:space-between; align-items:center; padding:16px 0; }
+  nav .logo { font-family:'JetBrains Mono',monospace; font-weight:500; }
+  nav .logo b { color:var(--accent); font-weight:500; }
+  nav .links { display:flex; align-items:center; gap:26px; }
+  nav .links a { position:relative; transition:color .2s; } nav .links a:hover { color:var(--text); }
+  nav .links a.on { color:var(--text); }
+  nav .links a.on::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--accent); }
+  nav .links .home { color:var(--text); }
+  nav .links .cta { color:#0C0D0F; background:var(--accent); padding:8px 14px; border:1px solid var(--accent); transition:background .25s, color .25s; }
+  nav .links .cta:hover { background:transparent; color:var(--accent); }
+  nav .links .cta.on::after { display:none; }
+
+  .hero { position:relative; display:grid; grid-template-columns:.9fr 1.1fr; gap:48px; align-items:center; min-height:calc(100vh - 110px); padding:40px 0 80px; }
+  .viewport { position:relative; height:min(70vh,580px); border:1px solid var(--line); background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/40px 40px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/40px 40px; }
+  .viewport canvas { width:100%; height:100%; display:block; }
+  .viewport .corner { position:absolute; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); padding:10px 12px; }
+  .tl { top:0; left:0; } .br { bottom:0; right:0; }
+  h1 { font-size:clamp(48px,6.6vw,96px); font-weight:600; letter-spacing:-.035em; line-height:.95; }
+  .role { font-family:'JetBrains Mono',monospace; font-size:15px; margin:18px 0 34px; color:var(--accent); }
+  .spec { border-top:1px solid var(--line); }
+  .spec div { display:grid; grid-template-columns:140px 1fr; padding:14px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .spec dt { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); padding-top:2px; }
+  .chars span { display:inline-block; }
+  .cue { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text); }
+  .cue i { width:1px; height:34px; background:linear-gradient(var(--accent), transparent); animation:drip 1.8s ease-in-out infinite; transform-origin:top; }
+  @keyframes drip { 0% { transform:scaleY(0); } 50% { transform:scaleY(1); } 100% { transform:scaleY(1); opacity:0; } }
+
+  section { padding:110px 0; border-top:1px solid var(--line); }
+  h2 { font-size:clamp(34px,4.4vw,56px); font-weight:600; letter-spacing:-.03em; }
+  .sub { color:#B4B8BF; margin-top:14px; max-width:44em; line-height:1.6; font-size:17px; }
+
+  .index { margin-top:44px; border-top:1px solid var(--line); }
+  .index a { display:grid; grid-template-columns:70px 200px 1fr 260px 60px; gap:18px; align-items:baseline; padding:24px 0; border-bottom:1px solid var(--line); position:relative; transition:padding .35s cubic-bezier(.2,.7,.2,1), color .3s; }
+  .index a::before { content:""; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--accent); transform:scaleY(0); transition:transform .35s; }
+  .index a:hover { padding-left:16px; } .index a:hover::before { transform:scaleY(1); }
+  .index .num { font-family:'JetBrains Mono',monospace; color:var(--accent); }
+  .index .name { font-size:24px; font-weight:600; letter-spacing:-.02em; }
+  .index .what { color:#B4B8BF; }
+  .index .go { text-align:right; }
+
+  .project { padding-top:120px; }
+  .phead { display:flex; justify-content:space-between; align-items:flex-end; gap:32px; margin-bottom:36px; }
+  .phead .counter { color:var(--accent); }
+  .phead h2 { font-size:clamp(44px,6vw,80px); margin:6px 0 4px; }
+  .phead .tags { margin-top:14px; }
+  .plinks { display:flex; gap:12px; flex-shrink:0; }
+  .plinks a { font-family:'JetBrains Mono',monospace; font-size:13px; border:1px solid var(--line-2); padding:10px 14px; transition:border-color .3s, color .3s; }
+  .plinks a:hover { border-color:var(--accent); color:var(--accent); }
+  .sys { display:grid; grid-template-columns:1.25fr .75fr; gap:24px; align-items:stretch; }
+  .diagram { border:1px solid var(--line); background:var(--panel); padding:16px; }
+  .diagram .cap { display:flex; justify-content:space-between; margin-bottom:8px; }
+  .node rect { fill:#0F1113; stroke:var(--line-2); stroke-width:1; }
+  .node text { font-family:'JetBrains Mono',monospace; font-size:13px; fill:var(--text); }
+  .node .t2 { fill:var(--muted); font-size:11px; }
+  .wire { fill:none; stroke:var(--accent); stroke-width:1.5; }
+  .wire.thick { stroke-width:4; }
+  .wire-bg { fill:none; stroke:var(--line-2); stroke-width:1; stroke-dasharray:3 4; }
+  .log { font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.95; border:1px solid var(--line); background:var(--panel); padding:18px; }
+  .log .cap { margin-bottom:10px; }
+  .log p { opacity:.14; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .log .ok { color:var(--accent); }
+
+  .about { display:grid; grid-template-columns:1.1fr .9fr; gap:56px; }
+  .stack div { display:grid; grid-template-columns:110px 1fr; padding:14px 0; border-bottom:1px solid var(--line); }
+  .stack { border-top:1px solid var(--line); }
+  .contact { display:flex; justify-content:space-between; align-items:end; }
+  .contact .links a { font-family:'JetBrains Mono',monospace; font-size:15px; margin-left:28px; border-bottom:1px solid var(--line-2); padding-bottom:4px; transition:border-color .3s, color .3s; }
+  .contact .links a:hover { color:var(--accent); border-color:var(--accent); }
+  footer { padding:26px 0 40px; border-top:1px solid var(--line); display:flex; justify-content:space-between; }
+
+  .chip { position:fixed; left:24px; bottom:22px; z-index:25; background:var(--panel); border:1px solid var(--line-2); padding:10px 14px; color:var(--text);
+          opacity:0; transform:translateY(12px); transition:opacity .35s, transform .35s; pointer-events:none; }
+  .chip.on { opacity:1; transform:none; } .chip b { color:var(--accent); font-weight:500; }
+  @media (max-width:900px) { .hero, .sys, .about { grid-template-columns:1fr; } .index a { grid-template-columns:50px 1fr; } .index .what, .index .stack-col, .index .go { grid-column:2; text-align:left; } .phead { flex-direction:column; align-items:flex-start; } }
+</style>
+</head>
+<body>
+<div class="proto"><span class="mono">Protótipo B · Engenharia escura · direção escolhida (24/11) · não é o site final</span><span class="mono"><a href="a-caderno-tecnico.html">A</a><a class="on" href="b-engenharia-escura.html">B</a><a href="c-imersivo-3d.html">C</a></span></div>
+
+<div class="topbar"><div class="wrap">
+  <nav>
+    <a class="logo" href="#inicio" aria-label="Voltar ao início">vr<b>/</b>vinicius</a>
+    <span class="links mono">
+      <a class="home" href="#inicio" data-section="inicio">↑ início</a>
+      <a href="#projetos" data-section="projetos">projetos</a>
+      <a href="#sobre" data-section="sobre">sobre</a>
+      <a class="cta" href="#contato" data-section="contato">contato</a>
+    </span>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <header class="hero" id="inicio">
+    <div class="viewport">
+      <span class="corner tl">avatar.glb · provisório</span>
+      <canvas id="bust"></canvas>
+      <span class="corner br" id="coords">x 0.00 · y 0.00</span>
+    </div>
+    <div>
+      <p class="mono fade">// desenvolvedor front-end · são paulo</p>
+      <h1 class="chars">Vinicius<br>Rodrigues</h1>
+      <p class="role fade">react · angular · typescript · c#/.net</p>
+      <dl class="spec">
+        <div><dt>hoje</dt><dd>Class Solutions, front-end (desde 2024)</dd></div>
+        <div><dt>formação</dt><dd>Sistemas de Informação, FIAP (2025)</dd></div>
+        <div><dt>projetos</dt><dd>3 sistemas, explicados por dentro aqui embaixo</dd></div>
+        <div><dt>idiomas</dt><dd>português nativo · inglês intermediário</dd></div>
+      </dl>
+    </div>
+    <a class="cue mono" href="#projetos">3 projetos<i></i></a>
+  </header>
+</div>
+
+<section id="projetos"><div class="wrap">
+  <p class="mono">// projetos</p>
+  <h2 style="margin-top:10px">Três sistemas, explicados por dentro</h2>
+  <p class="sub">Cada projeto tem um diagrama que se monta enquanto você rola: o caminho de um pedido, do clique até a resposta, com o que acontece em cada parte.</p>
+  <div class="index">
+    <a href="#p1"><span class="num">01</span><span class="name">agenda-ia</span><span class="what">Perguntas em português sobre a sua agenda, com resposta que cita a fonte</span><span class="mono stack-col">python · fastapi · groq</span><span class="mono go">ver ↓</span></a>
+    <a href="#p2"><span class="num">02</span><span class="name">TicketFlow</span><span class="what">Venda de ingressos sem overselling e sem cobrança duplicada</span><span class="mono stack-col">next.js · nestjs · stripe</span><span class="mono go">ver ↓</span></a>
+    <a href="#p3"><span class="num">03</span><span class="name">Sinal</span><span class="what">Voz e tela compartilhada direto entre navegadores</span><span class="mono stack-col">typescript · webrtc</span><span class="mono go">ver ↓</span></a>
+  </div>
+</div></section>
+
+<section class="project" id="p1" data-name="agenda-ia" data-n="01"><div class="wrap">
+  <header class="phead">
+    <div>
+      <p class="mono counter">projeto 01 / 03</p>
+      <h2>agenda-ia</h2>
+      <p class="sub">Pergunte em português sobre a sua agenda. O sistema entende a pergunta, busca por significado e por palavra, e só responde citando um compromisso real.</p>
+      <p class="mono tags">python · fastapi · groq · pgvector · cloud run</p>
+    </div>
+    <div class="plinks"><a href="https://github.com/ViniGHub/agenda-ai">código ↗</a><a href="https://agenda-ia.web.app">demo ↗</a></div>
+  </header>
+  <div class="sys">
+    <div class="diagram"><div class="cap mono"><span>// uma pergunta, do clique à resposta</span><span>role ↓</span></div>
+      <svg viewBox="0 0 640 320" width="100%">
+        <path class="wire-bg" d="M110 70 H260"/><path class="wire-bg" d="M380 60 H470"/><path class="wire-bg" d="M320 100 V180"/><path class="wire-bg" d="M390 210 C430 210 430 270 470 270"/>
+        <path class="wire" data-step="1" d="M110 70 H260"/>
+        <path class="wire" data-step="3" d="M380 60 H470"/>
+        <path class="wire" data-step="5" d="M320 100 V180"/>
+        <path class="wire" data-step="7" d="M390 210 C430 210 430 270 470 270"/>
+        <g class="node" data-step="0"><rect x="10" y="40" width="100" height="60" rx="3"/><text x="24" y="66">browser</text><text class="t2" x="24" y="86">react · pwa</text></g>
+        <g class="node" data-step="2"><rect x="260" y="40" width="120" height="60" rx="3"/><text x="274" y="66">fastapi</text><text class="t2" x="274" y="86">cloud run</text></g>
+        <g class="node" data-step="4"><rect x="470" y="30" width="150" height="60" rx="3"/><text x="484" y="56">groq · llm</text><text class="t2" x="484" y="76">entender · responder</text></g>
+        <g class="node" data-step="6"><rect x="250" y="180" width="140" height="60" rx="3"/><text x="264" y="206">busca híbrida</text><text class="t2" x="264" y="226">vetor + bm25 · rrf</text></g>
+        <g class="node" data-step="8"><rect x="470" y="240" width="150" height="60" rx="3"/><text x="484" y="266">neon · pgvector</text><text class="t2" x="484" y="286">filtrado por dono</text></g>
+      </svg>
+    </div>
+    <div class="log"><p class="cap mono">// log</p>
+      <p data-step="0">&gt; POST /api/minha/perguntar</p>
+      <p data-step="0">&nbsp;&nbsp;"o que tenho na quinta?"</p>
+      <p data-step="4">&gt; understand() → tipo=listar de=2026-11-26</p>
+      <p data-step="8">&gt; hybrid_search() → 3 eventos</p>
+      <p data-step="9">&gt; compose() → 2 citações válidas</p>
+      <p data-step="10" class="ok">&lt; 200 OK · resposta com fonte</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="project" id="p2" data-name="TicketFlow" data-n="02"><div class="wrap">
+  <header class="phead">
+    <div>
+      <p class="mono counter">projeto 02 / 03</p>
+      <h2>TicketFlow</h2>
+      <p class="sub">Venda de ingressos para eventos pequenos. O estoque é reservado de forma atômica, o webhook do pagamento pode chegar repetido sem cobrar duas vezes, e o e-mail sai por uma outbox transacional.</p>
+      <p class="mono tags">next.js · nestjs · postgres · stripe</p>
+    </div>
+    <div class="plinks"><a href="https://github.com/ViniGHub/TicketFlow">código ↗</a></div>
+  </header>
+  <div class="sys">
+    <div class="diagram"><div class="cap mono"><span>// uma compra, do checkout ao ingresso</span><span>role ↓</span></div>
+      <svg viewBox="0 0 640 320" width="100%">
+        <path class="wire-bg" d="M140 60 H250"/><path class="wire-bg" d="M390 60 H500"/><path class="wire-bg" d="M565 90 V220"/><path class="wire-bg" d="M500 250 H390"/><path class="wire-bg" d="M250 250 H140"/>
+        <path class="wire" data-step="1" d="M140 60 H250"/>
+        <path class="wire" data-step="3" d="M390 60 H500"/>
+        <path class="wire" data-step="5" d="M565 90 V220"/>
+        <path class="wire" data-step="8" d="M500 250 H390"/>
+        <path class="wire" data-step="10" d="M250 250 H140"/>
+        <g class="node" data-step="0"><rect x="10" y="30" width="130" height="60" rx="3"/><text x="24" y="56">checkout</text><text class="t2" x="24" y="76">next.js</text></g>
+        <g class="node" data-step="2"><rect x="250" y="30" width="140" height="60" rx="3"/><text x="264" y="56">reserva</text><text class="t2" x="264" y="76">atômica · postgres</text></g>
+        <g class="node" data-step="4"><rect x="500" y="30" width="130" height="60" rx="3"/><text x="514" y="56">stripe</text><text class="t2" x="514" y="76">checkout session</text></g>
+        <g class="node" data-step="6"><rect x="500" y="220" width="130" height="60" rx="3"/><text x="514" y="246">webhook</text><text class="t2" x="514" y="266">idempotente</text></g>
+        <g class="node" data-step="9"><rect x="250" y="220" width="140" height="60" rx="3"/><text x="264" y="246">outbox</text><text class="t2" x="264" y="266">mesma transação</text></g>
+        <g class="node" data-step="11"><rect x="10" y="220" width="130" height="60" rx="3"/><text x="24" y="246">ingresso</text><text class="t2" x="24" y="266">por e-mail</text></g>
+      </svg>
+    </div>
+    <div class="log"><p class="cap mono">// log</p>
+      <p data-step="0">&gt; POST /checkout · 2 ingressos</p>
+      <p data-step="2">&gt; reserva atômica · estoque 38 → 36</p>
+      <p data-step="4">&gt; stripe → checkout.session.completed</p>
+      <p data-step="6">&gt; webhook · pedido #A-0042 pago</p>
+      <p data-step="7">&gt; mesmo webhook de novo · ignorado</p>
+      <p data-step="9">&gt; outbox · evento gravado com o pedido</p>
+      <p data-step="11" class="ok">&lt; 2 ingressos enviados · cobrado 1x</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="project" id="p3" data-name="Sinal" data-n="03"><div class="wrap">
+  <header class="phead">
+    <div>
+      <p class="mono counter">projeto 03 / 03</p>
+      <h2>Sinal</h2>
+      <p class="sub">Voz e tela compartilhada direto entre dois navegadores. Um servidor público só ajuda as duas pontas a se encontrarem; depois, áudio e vídeo vão de uma pessoa para a outra.</p>
+      <p class="mono tags">typescript · webrtc · peerjs</p>
+    </div>
+    <div class="plinks"><a href="https://github.com/ViniGHub/sinal-app">código ↗</a><a href="https://vinighub.github.io/sinal-app/">demo ↗</a></div>
+  </header>
+  <div class="sys">
+    <div class="diagram"><div class="cap mono"><span>// uma chamada, do link à conexão direta</span><span>role ↓</span></div>
+      <svg viewBox="0 0 640 320" width="100%">
+        <path class="wire-bg" d="M75 220 V60 H255"/><path class="wire-bg" d="M385 60 H565 V220"/><path class="wire-bg" d="M140 250 H500"/>
+        <path class="wire" data-step="1" d="M75 220 V60 H255"/>
+        <path class="wire" data-step="3" d="M385 60 H565 V220"/>
+        <path class="wire thick" data-step="5" d="M140 250 H500"/>
+        <g class="node" data-step="0"><rect x="10" y="220" width="130" height="60" rx="3"/><text x="24" y="246">você</text><text class="t2" x="24" y="266">navegador</text></g>
+        <g class="node" data-step="2" data-off="6"><rect x="255" y="30" width="130" height="60" rx="3"/><text x="269" y="56">broker</text><text class="t2" x="269" y="76">peerjs · só o início</text></g>
+        <g class="node" data-step="4"><rect x="500" y="220" width="130" height="60" rx="3"/><text x="514" y="246">amigo</text><text class="t2" x="514" y="266">navegador</text></g>
+        <text class="mono" x="320" y="236" text-anchor="middle" fill="#878C95" font-size="11">áudio e tela · p2p</text>
+      </svg>
+    </div>
+    <div class="log"><p class="cap mono">// log</p>
+      <p data-step="0">&gt; você abre o link da sala</p>
+      <p data-step="2">&gt; broker troca os endereços (sdp, ice)</p>
+      <p data-step="4">&gt; o amigo entra</p>
+      <p data-step="5">&gt; conexão direta · webrtc</p>
+      <p data-step="6">&gt; broker sai da conversa</p>
+      <p data-step="7" class="ok">&lt; chamada p2p · nenhum servidor no meio</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="sobre"><div class="wrap about">
+  <div>
+    <p class="mono">// sobre</p>
+    <h2 style="margin-top:10px">Sobre</h2>
+    <p class="sub">Sou desenvolvedor front-end na Class Solutions, onde construo aplicações em React e Angular integradas ao SharePoint e a APIs em C#/.NET. Formado em Sistemas de Informação pela FIAP. Gosto de problemas em que o detalhe técnico decide se a coisa funciona: pagamento que não pode cobrar duas vezes, conexão direta entre navegadores, resposta de IA que precisa citar a fonte.</p>
+  </div>
+  <div class="stack mono">
+    <div><span>front</span><span style="color:var(--text)">React · Angular · TypeScript · SPFx</span></div>
+    <div><span>back</span><span style="color:var(--text)">C#/.NET · Node/NestJS · Python/FastAPI</span></div>
+    <div><span>dados</span><span style="color:var(--text)">Postgres · pgvector · Oracle</span></div>
+    <div><span>nuvem</span><span style="color:var(--text)">Cloud Run · Neon · GitHub Actions</span></div>
+  </div>
+</div></section>
+
+<section id="contato"><div class="wrap contact">
+  <div><p class="mono">// contato</p><h2 style="margin-top:10px">Contato</h2></div>
+  <div class="links"><a href="https://www.linkedin.com/in/vini-rodri">linkedin ↗</a><a href="https://github.com/ViniGHub">github ↗</a><a href="#">e-mail ↗</a></div>
+</div></section>
+<div class="wrap"><footer class="mono"><span>feito com react, gsap e three.js</span><span>© 2026</span></footer></div>
+
+<div class="chip mono" id="chip"><b id="chip-n">projeto 01/03</b> · <span id="chip-name">agenda-ia</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="bust.js"></script>
+<script>
+  const ACCENT = '#C6F35E', LINE = '#33373E';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+  let lenis = null;
+  if (window.Lenis && !reduce) {
+    lenis = new Lenis({ lerp: 0.09 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((t) => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+  // Every link inside the page scrolls smoothly; "início" goes to the very top, the rest stop below the fixed bar.
+  const barHeight = () => document.querySelector('.topbar').offsetHeight + 31;
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    const target = id === '#inicio' ? 0 : document.querySelector(id);
+    if (target === null) return;
+    e.preventDefault();
+    if (lenis) lenis.scrollTo(target, { offset: target === 0 ? 0 : -barHeight() + 1, duration: 1.4 });
+    else window.scrollTo({ top: target === 0 ? 0 : target.getBoundingClientRect().top + scrollY - barHeight(), behavior: 'smooth' });
+  }));
+
+
+  window.mountBust(document.getElementById('bust'), 'lowpoly',
+    { skin: 0x7B8189, hair: 0x2A2D31, shirt: 0x1B1E22, eyes: 0x0C0D0F },
+    (THREE, scene) => {
+      scene.add(new THREE.AmbientLight(0xFFFFFF, 0.3));
+      const key = new THREE.DirectionalLight(0xFFFFFF, 0.8); key.position.set(3, 2, 4); scene.add(key);
+      const rim = new THREE.DirectionalLight(0xC6F35E, 1.4); rim.position.set(-4, 2, -3); scene.add(rim);
+    }, { distance: 7.4, lookY: -0.45 });
+  const coords = document.getElementById('coords');
+  addEventListener('pointermove', (e) => {
+    coords.textContent = `x ${(e.clientX / innerWidth * 2 - 1).toFixed(2)} · y ${(e.clientY / innerHeight * 2 - 1).toFixed(2)}`;
+  });
+
+  // Name: each letter drops in; then the spec rows appear one by one.
+  const h1 = document.querySelector('.chars');
+  h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((p) => p === '<br>' ? p : [...p].map((c) => `<span>${c}</span>`).join('')).join('');
+  if (!reduce) {
+    document.fonts.ready.then(() => {
+      gsap.from('.chars span', { yPercent: -60, opacity: 0, duration: 0.7, ease: 'power4.out', stagger: 0.035 });
+      gsap.from('.fade', { opacity: 0, x: -10, duration: 0.6, stagger: 0.1, delay: 0.5 });
+      gsap.from('.spec div', { opacity: 0, y: 10, duration: 0.5, stagger: 0.09, delay: 0.7 });
+      gsap.from('.viewport', { opacity: 0, duration: 1.2, delay: 0.2 });
+      gsap.from('.index a', { opacity: 0, y: 30, duration: 0.7, ease: 'power3.out', stagger: 0.1, scrollTrigger: { trigger: '.index', start: 'top 85%' } });
+      gsap.utils.toArray('.phead').forEach((h) => gsap.from(h.children, { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out', stagger: 0.1, scrollTrigger: { trigger: h, start: 'top 80%' } }));
+    });
+  }
+
+  // Each project: the diagram and the log stay on screen while the scroll walks the request through the system.
+  const chip = document.getElementById('chip');
+  const active = new Set();
+  document.querySelectorAll('.project').forEach((section) => {
+    const items = [...section.querySelectorAll('[data-step]')];
+    items.filter((el) => el.matches('path.wire')).forEach((w) => {
+      const L = w.getTotalLength(); w.style.strokeDasharray = L; w.style.strokeDashoffset = L;
+    });
+    const tl = gsap.timeline({ scrollTrigger: { trigger: section.querySelector('.sys'), start: 'top 130px', end: '+=1100', scrub: 0.6, pin: true } });
+    items.forEach((el) => {
+      const at = +el.dataset.step * 0.5;
+      if (el.matches('path')) tl.to(el, { strokeDashoffset: 0, duration: 0.5, ease: 'none' }, at);
+      else if (el.matches('g')) {
+        tl.to(el.querySelector('rect'), { stroke: ACCENT, duration: 0.15 }, at);
+        if (el.dataset.off) tl.to(el, { opacity: 0.35, duration: 0.2 }, +el.dataset.off * 0.5).to(el.querySelector('rect'), { stroke: LINE, duration: 0.2 }, '<');
+      } else tl.to(el, { opacity: 1, duration: 0.15 }, at);
+    });
+    tl.to({}, { duration: 0.6 });
+
+    // The chip in the corner says which project is on screen.
+    ScrollTrigger.create({ trigger: section, start: 'top 55%', end: 'bottom 45%',
+      onToggle: (self) => {
+        if (self.isActive) {
+          active.add(section);
+          document.getElementById('chip-n').textContent = `projeto ${section.dataset.n}/03`;
+          document.getElementById('chip-name').textContent = section.dataset.name;
+        } else active.delete(section);
+        chip.classList.toggle('on', active.size > 0);
+      } });
+  });
+
+  // The bar marks where you are. Created after the pinned projects, so the positions include the pinned space.
+  const marks = [['inicio', '#inicio'], ['projetos', '#projetos'], ['projetos', '#p1'], ['projetos', '#p2'], ['projetos', '#p3'], ['sobre', '#sobre'], ['contato', '#contato']];
+  const setMark = (name) => document.querySelectorAll('nav .links a').forEach((l) => l.classList.toggle('on', l.dataset.section === name));
+  marks.forEach(([name, sel]) => ScrollTrigger.create({ trigger: sel, start: 'top 45%', end: 'bottom 45%',
+    onToggle: (self) => self.isActive && setMark(name) }));
+  // Contato is short and sits at the end, so it may never reach the middle: mark it when the page bottoms out.
+  ScrollTrigger.create({ trigger: document.body, start: 'bottom-=60 bottom', onEnter: () => setMark('contato'), onLeaveBack: () => setMark('sobre') });
+  setMark('inicio');
+</script>
+</body>
+</html>

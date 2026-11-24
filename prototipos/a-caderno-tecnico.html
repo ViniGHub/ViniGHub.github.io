@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo A · Caderno técnico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#F3EFE6; --paper-2:#EAE4D6; --ink:#1D1B17; --muted:#6E675C; --rule:rgba(29,27,23,.09); --line:#CFC6B4; --accent:#D9472B; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { background:var(--paper); }
+  body { font-family:'IBM Plex Sans',system-ui,sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased;
+         background-image:linear-gradient(var(--rule) 1px, transparent 1px); background-size:100% 34px; }
+  a { color:inherit; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .proto { position:sticky; top:0; z-index:20; display:flex; justify-content:space-between; gap:16px; padding:8px 24px; background:var(--ink); color:var(--paper); }
+  .proto a { color:var(--paper); opacity:.7; text-decoration:none; margin-left:14px; } .proto a.on { opacity:1; text-decoration:underline; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 32px; }
+  nav { display:flex; justify-content:space-between; align-items:center; padding:28px 0; border-bottom:1px solid var(--line); }
+  nav .name { font-family:'Instrument Serif',serif; font-size:26px; }
+  nav .links a { margin-left:28px; text-decoration:none; }
+  .ink { background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat; transition:background-size .45s cubic-bezier(.2,.7,.2,1); }
+  .ink:hover { background-size:100% 1px; }
+
+  .hero { display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:center; min-height:calc(100vh - 120px); padding:40px 0 64px; }
+  h1 { font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(56px,8.4vw,128px); line-height:.9; letter-spacing:-.02em; margin:22px 0 28px; }
+  h1 em { color:var(--accent); }
+  .w { display:inline-block; overflow:hidden; vertical-align:top; padding-bottom:.06em; }
+  .w > span { display:inline-block; }
+  .lead { font-size:19px; line-height:1.6; max-width:34em; color:#3B372F; }
+  .cta { display:flex; gap:28px; margin-top:34px; align-items:center; }
+  .btn { font-family:'IBM Plex Mono',monospace; font-size:13px; text-transform:uppercase; letter-spacing:.08em; padding:14px 22px; background:var(--ink); color:var(--paper); text-decoration:none; border-radius:2px; transition:transform .3s, background .3s; }
+  .btn:hover { background:var(--accent); transform:translateY(-2px); }
+  .stage { position:relative; height:min(78vh,640px); }
+  .stage canvas { width:100%; height:100%; display:block; }
+  .note { position:absolute; right:0; top:0; text-align:right; font-family:'Caveat',cursive; font-size:26px; color:var(--accent); transform:rotate(4deg); }
+  .note svg { display:block; margin:2px 0 0 auto; }
+
+  section { padding:96px 0; border-top:1px solid var(--line); }
+  .head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:36px; }
+  h2 { font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(40px,5vw,64px); line-height:1; }
+  .row { display:grid; grid-template-columns:64px 1.1fr 1.4fr 140px; gap:24px; align-items:baseline; padding:30px 0; border-bottom:1px solid var(--line); position:relative; cursor:pointer; }
+  .row::before { content:""; position:absolute; left:0; bottom:-1px; height:2px; width:100%; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .5s cubic-bezier(.2,.7,.2,1); }
+  .row:hover::before { transform:scaleX(1); }
+  .row .n { font-family:'IBM Plex Mono',monospace; color:var(--muted); }
+  .row h3 { font-family:'Instrument Serif',serif; font-weight:400; font-size:40px; line-height:1; transition:transform .4s; }
+  .row:hover h3 { transform:translateX(10px); font-style:italic; }
+  .row p { color:#4A453C; line-height:1.55; }
+  .row .tags { text-align:right; }
+  .peek { position:fixed; left:0; top:0; width:260px; height:170px; pointer-events:none; z-index:15; opacity:0; border:1px solid var(--ink); background:var(--paper); box-shadow:6px 6px 0 var(--ink); overflow:hidden; }
+  .peek .shot { position:absolute; inset:0; padding:14px; display:none; }
+  .peek .shot.on { display:block; }
+  .bar { height:10px; background:var(--paper-2); margin:8px 0; border-radius:2px; }
+
+  .case { display:grid; grid-template-columns:.9fr 1.1fr; gap:64px; }
+  .sticky { position:sticky; top:110px; align-self:start; }
+  .sticky p { margin-top:18px; line-height:1.6; color:#4A453C; max-width:28em; }
+  .progress { margin-top:28px; height:2px; background:var(--line); position:relative; }
+  .progress i { position:absolute; inset:0; background:var(--accent); transform:scaleX(0); transform-origin:left; }
+  .step { min-height:62vh; display:flex; flex-direction:column; justify-content:center; opacity:.25; transition:opacity .5s; }
+  .step.on { opacity:1; }
+  .step .card { background:#FBF9F3; border:1px solid var(--line); padding:26px 28px; box-shadow:0 1px 0 var(--line), 0 14px 30px -24px rgba(29,27,23,.5); max-width:460px; position:relative; }
+  .step h4 { font-family:'Instrument Serif',serif; font-weight:400; font-size:34px; margin:8px 0 12px; }
+  .step code { font-family:'IBM Plex Mono',monospace; font-size:14px; background:var(--paper-2); padding:2px 6px; }
+  .stamp { position:absolute; right:-26px; top:-22px; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; letter-spacing:.14em; color:var(--accent); border:2px solid var(--accent); padding:8px 12px; transform:rotate(9deg) scale(1.6); opacity:0; }
+
+  .contact h2 { font-size:clamp(48px,7vw,104px); max-width:12ch; }
+  .contact .links { display:flex; gap:36px; margin-top:40px; font-family:'IBM Plex Mono',monospace; font-size:15px; }
+  .contact .links a { text-decoration:none; }
+  footer { padding:28px 0 48px; display:flex; justify-content:space-between; border-top:1px solid var(--line); }
+  @media (max-width:860px) { .hero, .case { grid-template-columns:1fr; } .row { grid-template-columns:40px 1fr; } .row p, .row .tags { grid-column:2; text-align:left; } .stage { height:420px; } .sticky { position:relative; top:0; } }
+</style>
+</head>
+<body>
+<div class="proto mono"><span>Protótipo A de 3 · Caderno técnico · direção visual, não é o site final</span><span><a class="on" href="a-caderno-tecnico.html">A</a><a href="b-engenharia-escura.html">B</a><a href="c-imersivo-3d.html">C</a></span></div>
+
+<div class="wrap">
+  <nav>
+    <span class="name">Vinicius Rodrigues</span>
+    <span class="links mono"><a class="ink" href="#trabalho">trabalho</a><a class="ink" href="#caso">estudo de caso</a><a class="ink" href="#contato">contato</a><a class="ink" href="#">EN</a></span>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <p class="mono reveal-up">Desenvolvedor front-end · São Paulo</p>
+      <h1 class="split">Front-end que <em>entende</em> o back.</h1>
+      <p class="lead reveal-up">Construo interfaces em React e Angular e sigo o dado até o fim: APIs em .NET e Node, busca com IA e deploy na nuvem. Hoje na Class Solutions; formado em Sistemas de Informação pela FIAP.</p>
+      <div class="cta reveal-up"><a class="btn" href="#trabalho">Ver projetos</a><a class="mono ink" href="#">Currículo (PDF) ↗</a></div>
+    </div>
+    <div class="stage">
+      <canvas id="bust"></canvas>
+      <div class="note">eu, em 3D. mexe o mouse<svg width="70" height="40" viewBox="0 0 70 40" fill="none"><path d="M66 4C50 8 30 18 8 34M8 34l11-1M8 34l3-10" stroke="#D9472B" stroke-width="2" stroke-linecap="round"/></svg></div>
+    </div>
+  </header>
+</div>
+
+<section id="trabalho"><div class="wrap">
+  <div class="head"><h2 class="split">Trabalho selecionado</h2><span class="mono">2024 — 2026</span></div>
+  <div class="row" data-shot="0"><span class="n">01</span><h3>agenda-ia</h3><p>Pergunte em português sobre a sua agenda. RAG com busca híbrida, respostas que citam o compromisso e anotação por voz.</p><span class="mono tags">Python · FastAPI<br>Groq · Cloud Run</span></div>
+  <div class="row" data-shot="1"><span class="n">02</span><h3>TicketFlow</h3><p>Venda de ingressos sem overselling e sem cobrança duplicada: reserva atômica, webhooks idempotentes e outbox.</p><span class="mono tags">Next.js · NestJS<br>Stripe · Postgres</span></div>
+  <div class="row" data-shot="2"><span class="n">03</span><h3>Sinal</h3><p>Voz e tela compartilhada direto entre navegadores, via WebRTC. Só o primeiro contato passa por um servidor.</p><span class="mono tags">TypeScript<br>WebRTC · PeerJS</span></div>
+</div></section>
+
+<section id="caso"><div class="wrap case">
+  <div class="sticky">
+    <span class="mono">Estudo de caso · agenda-ia</span>
+    <h2 class="split">Como uma pergunta vira resposta</h2>
+    <p>Quatro passos, cada um com uma guarda. O modelo nunca grava nada e toda resposta precisa citar um compromisso real.</p>
+    <div class="progress"><i id="bar"></i></div>
+  </div>
+  <div>
+    <div class="step"><div class="card"><span class="mono">01 · você pergunta</span><h4>"o que tenho na quinta?"</h4><p>Texto ou voz. O áudio vira texto e é descartado.</p></div></div>
+    <div class="step"><div class="card"><span class="mono">02 · o modelo entende</span><h4>Uma consulta estruturada</h4><p><code>{"tipo": "listar", "de": "2026-11-26"}</code>, com as datas calculadas em código.</p></div></div>
+    <div class="step"><div class="card"><span class="mono">03 · a busca acha</span><h4>Significado + palavra</h4><p>Vetores e BM25 fundidos por RRF, filtrados pelo período.</p></div></div>
+    <div class="step"><div class="card"><span class="stamp" id="stamp">EM PRODUÇÃO</span><span class="mono">04 · a resposta cita</span><h4>"Dentista às 15h [1]"</h4><p>Citação fora da lista é descartada. Sem citação, não confirma.</p></div></div>
+  </div>
+</div></section>
+
+<section id="contato" class="contact"><div class="wrap">
+  <span class="mono">Contato</span>
+  <h2 class="split">Procuro minha próxima vaga em produto.</h2>
+  <div class="links"><a class="ink" href="https://www.linkedin.com/in/vini-rodri">LinkedIn ↗</a><a class="ink" href="https://github.com/ViniGHub">GitHub ↗</a><a class="ink" href="#">E-mail ↗</a></div>
+</div></section>
+
+<div class="wrap"><footer class="mono"><span>Feito à mão: React, GSAP, three.js</span><span>© 2026</span></footer></div>
+
+<div class="peek" id="peek">
+  <div class="shot"><span class="mono">agenda-ia</span><div class="bar" style="width:70%"></div><div class="bar" style="width:90%;background:#F7D9CF"></div><div class="bar" style="width:55%"></div><div class="bar" style="width:80%"></div></div>
+  <div class="shot"><span class="mono">ticketflow</span><div style="display:flex;gap:8px;margin-top:10px"><div class="bar" style="flex:1;height:60px"></div><div class="bar" style="flex:1;height:60px;background:#F7D9CF"></div><div class="bar" style="flex:1;height:60px"></div></div><div class="bar" style="width:40%"></div></div>
+  <div class="shot"><span class="mono">sinal</span><div style="display:flex;gap:10px;margin-top:12px"><div class="bar" style="width:46%;height:84px"></div><div class="bar" style="width:46%;height:84px;background:#F7D9CF"></div></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="bust.js"></script>
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  gsap.registerPlugin(ScrollTrigger);
+  if (window.Lenis && !reduce) {
+    const lenis = new Lenis({ lerp: 0.1 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((t) => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  // Words rise from behind a mask, like type being set.
+  document.querySelectorAll('.split').forEach((el) => {
+    el.innerHTML = el.innerHTML.split(/(<em>.*?<\/em>|\s+)/).filter(Boolean).map((part) =>
+      /^\s+$/.test(part) ? ' ' : `<span class="w"><span>${part}</span></span>`).join('');
+  });
+
+  window.mountBust(document.getElementById('bust'), 'clay',
+    { skin: 0xE6CDB4, hair: 0x2E241E, shirt: 0x2B2A26, eyes: 0x1D1B17 },
+    (THREE, scene) => {
+      scene.add(new THREE.HemisphereLight(0xFFF7EC, 0xB7A68B, 0.95));
+      const key = new THREE.DirectionalLight(0xFFFFFF, 0.85); key.position.set(2.5, 3, 4); scene.add(key);
+      const rim = new THREE.DirectionalLight(0xD9472B, 0.35); rim.position.set(-3, 1, -2); scene.add(rim);
+    });
+
+  if (!reduce) {
+    document.fonts.ready.then(() => {
+      gsap.from('.hero .w > span', { yPercent: 110, duration: 1.1, ease: 'expo.out', stagger: 0.06, delay: 0.15 });
+      gsap.from('.reveal-up', { y: 24, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: 0.35 });
+      gsap.from('.stage', { opacity: 0, scale: 0.94, duration: 1.4, ease: 'expo.out', delay: 0.2 });
+      gsap.from('.note', { opacity: 0, x: -12, rotate: -12, duration: 0.8, delay: 1.4, ease: 'back.out(2)' });
+      document.querySelectorAll('section .split').forEach((h) => gsap.from(h.querySelectorAll('.w > span'), {
+        yPercent: 110, duration: 1, ease: 'expo.out', stagger: 0.05, scrollTrigger: { trigger: h, start: 'top 85%' } }));
+      gsap.utils.toArray('.row').forEach((row, i) => gsap.from(row, {
+        y: 40, opacity: 0, duration: 0.9, ease: 'power3.out', delay: i * 0.05, scrollTrigger: { trigger: row, start: 'top 88%' } }));
+    });
+  }
+
+  // Case study: each step lights up as it crosses the middle; the bar follows the reading.
+  const steps = gsap.utils.toArray('.step');
+  steps.forEach((step, i) => ScrollTrigger.create({
+    trigger: step, start: 'top 60%',
+    onEnter: () => {
+      step.classList.add('on');
+      if (i === steps.length - 1) gsap.to('#stamp', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(3)' });
+    },
+    onLeaveBack: () => {
+      step.classList.remove('on');
+      if (i === steps.length - 1) gsap.to('#stamp', { opacity: 0, scale: 1.6, duration: 0.2 });
+    },
+  }));
+  addEventListener('scroll', () => gsap.to('#peek', { opacity: 0, duration: 0.2 }), { passive: true });
+  gsap.to('#bar', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: '.case', start: 'top 60%', end: 'bottom 70%', scrub: true } });
+
+  // Project index: a small preview follows the pointer.
+  const peek = document.getElementById('peek');
+  const shots = peek.querySelectorAll('.shot');
+  const px = gsap.quickTo(peek, 'x', { duration: 0.5, ease: 'power3' });
+  const py = gsap.quickTo(peek, 'y', { duration: 0.5, ease: 'power3' });
+  document.querySelectorAll('.row').forEach((row) => {
+    row.addEventListener('pointerenter', () => {
+      shots.forEach((s, i) => s.classList.toggle('on', i === +row.dataset.shot));
+      gsap.to(peek, { opacity: 1, rotate: -3, duration: 0.3 });
+    });
+    row.addEventListener('pointerleave', () => gsap.to(peek, { opacity: 0, rotate: 0, duration: 0.3 }));
+    row.addEventListener('pointermove', (e) => { px(e.clientX + 24); py(e.clientY - 90); });
+  });
+</script>
+</body>
+</html>
