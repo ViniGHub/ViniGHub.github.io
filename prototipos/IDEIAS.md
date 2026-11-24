@@ -15,6 +15,28 @@ Para ver: sirva esta pasta (`python -m http.server 8765`) e abra `http://localho
 - Deixar claro, ao rolar, que o que vem são **projetos**: índice de projetos logo depois da abertura e cabeçalho "projeto 01/03" em cada um.
 - **Sem tom de busca de vaga**: nada de "aberto a vagas" ou "vamos ver se encaixa". É um portfólio.
 
+## Ideias v2 (24/11/2026, depois do site no ar)
+
+Ele achou o site simples demais e o avatar fraco. O arquivo `ideias-v2.html` (com `head.js` e as capturas em `img/`) mostra as opções para ele escolher:
+
+- **Avatar**, todos sobre a mesma cabeça esculpida em código:
+  - **A · Escultura:** argila com moletom;
+  - **B · Scan em pontos:** nuvem de pontos com linha de varredura;
+  - **C · Curvas de nível:** fatias da cabeça, como um mapa topográfico.
+
+  Com o GLB dele, o mesmo tratamento passa a valer para o rosto real.
+- **Projetos que convidam a testar:**
+  1. **Janela ao vivo:** a captura vira a demo de verdade, dentro de um iframe;
+  2. **Mini-demo jogável:** o TicketFlow com o webhook repetido;
+  3. **Vitrine em movimento:** a captura se endireita e troca de "antes" para "depois" com o scroll.
+- **Extras:**
+  - paleta de comandos (Ctrl+K);
+  - página de estudo de caso por projeto;
+  - "mexendo agora", com o último commit;
+  - linha do tempo;
+  - versão em inglês;
+  - modo explorar 3D.
+
 ## Ideia C: o ambiente 3D (para depois)
 
 A página inteira é uma cena 3D do "canto" do Vinicius: uma mesa com monitor, celular e um ingresso, e o avatar atrás dela. Rolar a página move a câmera por cinco paradas:
