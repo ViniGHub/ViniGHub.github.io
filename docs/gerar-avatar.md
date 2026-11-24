@@ -12,7 +12,42 @@ O site espera um arquivo **GLB**, o formato 3D padrão da web, com o seu rosto. 
   - cabelo sem cobrir a testa e as orelhas;
   - celular na altura dos olhos.
 
-## Avaturn (recomendado)
+## Estilo animado (pedido de 24/11/2026)
+
+O Avaturn ficou realista demais. Há três caminhos para um avatar seu com cara de personagem de animação.
+
+### 1. Foto → ilustração no estilo animação → 3D (recomendado)
+
+O modelo continua reconhecível como você, mas desenhado como personagem. Leva cerca de 20 minutos.
+
+1. **Ilustração:** num gerador de imagens (ChatGPT, Gemini etc.), envie uma foto boa (veja "Fotos" abaixo) e peça algo como:
+   > Transforme esta foto num personagem 3D no estilo de filme de animação: traços simplificados, olhos um pouco maiores, pele lisa, cores suaves. Mantenha o rosto reconhecível (formato do rosto, cabelo, sobrancelhas, barba se houver). Busto de frente, cabeça e ombros, expressão neutra com leve sorriso, camiseta lisa escura, fundo cinza liso, luz suave de estúdio.
+
+   Gere algumas variações e escolha a mais parecida com você.
+2. **Modelo 3D:** no **Meshy** (https://www.meshy.ai) ou no **Tripo** (https://www.tripo3d.ai), use **Image to 3D** com essa ilustração. Escolha a melhor das variações, gere a textura e baixe em **GLB**.
+3. **Opcional, para só a cabeça se mexer:** gere a ilustração de **corpo inteiro, em pé, braços um pouco abertos**, e use o **Rig** (esqueleto automático) do Meshy ou do Tripo antes de baixar. Com esqueleto, a cabeça segue o mouse e o corpo fica parado. Sem esqueleto, o busto inteiro gira um pouco, o que também funciona.
+
+**Limites:**
+- Os planos gratuitos têm cota de créditos e de downloads.
+- Os modelos do plano gratuito costumam sair com licença CC BY 4.0. Para um portfólio pessoal, basta um crédito no rodapé ("avatar gerado com Meshy").
+- Esse modelo não traz expressões. Piscar e sorrir só seriam possíveis com um modelo feito à mão (caminhos 2 e 3).
+
+### 2. VRoid Studio (estilo anime, o mais vivo)
+
+1. Baixe o **VRoid Studio** (gratuito, para Windows) e monte um personagem parecido com você pelos controles de rosto, cabelo e roupa. Não precisa enviar foto para lugar nenhum.
+2. Exporte em **VRM**, um GLB com padrões extras para avatar.
+3. No site, com o three-vrm:
+   - os olhos acompanham o mouse;
+   - o personagem pisca e sorri;
+   - o cabelo balança com o movimento, por física.
+
+   É o avatar mais animado das opções. O traço, porém, é de anime.
+
+### 3. Encomendar a um artista
+
+Peça um "stylized 3D bust from photo" no Fiverr, no ArtStation ou no Behance, com entrega em **GLB** e blendshapes de piscar e sorrir. É o resultado mais bonito e único, com custo e prazo de alguns dias.
+
+## Avaturn (realista)
 
 1. Abra **https://hub.avaturn.me** e entre com Google, e-mail ou como convidado (*Sign In as Guest*). Para conseguir exportar depois, prefira uma conta.
 2. Crie o avatar e siga as instruções da tela para tirar as selfies. Normalmente são de frente e dos lados, e dá para tirar pelo celular.
