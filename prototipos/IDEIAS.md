@@ -49,7 +49,7 @@ O avatar já está no ar: é o GLB do Meshy, com só a cabeça seguindo o mouse.
 | Paleta Ctrl+K | Feito | cmdk (a base do Command do shadcn): ir para as seções, testar os projetos, abrir código e perfis, copiar o link. |
 | "Mexendo agora" | Feito | Último commit público fora do próprio portfólio, numa linha dos fatos do topo. O feed de eventos do GitHub não traz mais os commits, então o site pede o repositório com push mais recente e o último commit dele. |
 | Linha do tempo | Feito | Na seção Sobre, com as datas do currículo (Etec, FIAP, Ipem-SP, Class Solutions). Os empregos mostram a duração; os estudos, "concluído". |
-| Estudo de caso por projeto | Em parte | agenda-ia publicado em /projetos/agenda-ia/ (texto revisado por ele). Faltam TicketFlow e Sinal. O texto fica em `src/content/case-studies.ts`. |
+| Estudo de caso por projeto | Em parte | agenda-ia e TicketFlow publicados em /projetos/<id>/ (textos revisados por ele). Falta o Sinal. O texto fica em `src/content/case-studies.ts`. |
 | Versão em inglês | Sim | Melhor deixar por último, depois que os textos estabilizarem. |
 | Modo explorar 3D | Depois | Continua guardado (ideia C). |
 

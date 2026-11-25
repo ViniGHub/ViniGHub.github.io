@@ -87,6 +87,85 @@ export const caseStudies: CaseStudy[] = [
     ],
     docs: [{ label: 'arquitetura', href: 'https://github.com/ViniGHub/agenda-ai/blob/main/docs/arquitetura.md' }],
   },
+  {
+    projectId: 'ticketflow',
+    title: 'Ingressos sem venda a mais e sem cobrança dupla',
+    lead: 'Venda de ingressos para eventos pequenos, com pagamento pelo Stripe. O trabalho está no que acontece quando algo dá errado: 50 pessoas disputando os últimos 10 ingressos, o Stripe avisando o mesmo pagamento duas vezes, o comprador fechando a aba logo depois de pagar.',
+    problem: [
+      'Vender ingresso parece um formulário com um botão de pagar. O difícil é a concorrência: quando sobram 10 ingressos e 50 pessoas compram ao mesmo tempo, ler o estoque e depois gravar vende mais do que existe.',
+      'O pagamento traz outros casos. O Stripe reenvia o webhook quando não recebe resposta, e o comprador pode fechar a aba antes de voltar ao site. Em todos eles o sistema precisa cobrar uma vez só e emitir os ingressos uma vez só.',
+      'E um pedido pago não pode ficar sem e-mail, nem se a fila de mensagens (Redis) cair no meio do caminho.',
+    ],
+    steps: [
+      {
+        title: 'Reservar',
+        text: 'O pedido trava o evento em modo compartilhado (FOR SHARE) e desconta o estoque com um UPDATE condicional, que só passa se ainda houver quantidade. Um CHECK no banco é a segunda defesa contra estoque negativo.',
+      },
+      {
+        title: 'Pagar',
+        text: 'A sessão de pagamento do Stripe é criada depois do commit, fora da transação, com o id do pedido como chave de idempotência. Se o Stripe falhar, o pedido é cancelado e o estoque volta.',
+      },
+      {
+        title: 'Confirmar',
+        text: 'Quem confirma o pagamento é o webhook, não a volta do navegador. Cada evento é gravado com ON CONFLICT DO NOTHING, então um evento repetido não faz nada. Pedido, ingressos e a mensagem da outbox mudam na mesma transação.',
+      },
+      {
+        title: 'Avisar',
+        text: 'Um processo lê a outbox a cada segundo com FOR UPDATE SKIP LOCKED e publica na fila; o e-mail só sai para ingressos ainda não enviados. Se o Redis cair, a mensagem espera no Postgres.',
+      },
+      {
+        title: 'Arrumar o que sobrou',
+        text: 'A cada minuto, pedidos vencidos expiram e devolvem o estoque. A cada 15 minutos, uma reconciliação pergunta ao Stripe pelos pagamentos cujo webhook se perdeu.',
+      },
+    ],
+    decisions: [
+      { decision: 'O Postgres é a fonte da verdade', why: 'Estoque, pedidos e ingressos mudam em transações do banco; Redis e Stripe ficam de fora delas. Nenhuma chamada HTTP acontece com uma transação aberta.' },
+      { decision: 'Trava compartilhada do evento, não exclusiva', why: 'Compras simultâneas seguem em paralelo, mas um cancelamento do evento não passa no meio delas. Uma trava exclusiva enfileiraria todas as compras.' },
+      { decision: 'As transições do pedido numa tabela', why: 'Cada par origem → destino traz o efeito no estoque escrito ao lado. Os 49 pares são testados, e o CI exige 100% de cobertura.' },
+      { decision: 'ON CONFLICT DO NOTHING no webhook', why: 'Capturar o erro de chave duplicada não funciona no Postgres: um erro aborta a transação inteira.' },
+      { decision: 'A outbox não é um job da fila', why: 'Ela existe para quando o Redis está fora do ar; depender do Redis para lê-la seria circular.' },
+      { decision: 'A reconciliação reaproveita o processador do webhook', why: 'O estado da sessão vira um evento sintético e passa pelo mesmo código. Buscar a lista de eventos do Stripe não serviria, porque ele só guarda 30 dias.' },
+      { decision: 'Parâmetros do pagamento tirados só do pedido gravado', why: 'O Stripe recusa a mesma chave de idempotência com parâmetros diferentes, então nada pode depender da hora da chamada.' },
+    ],
+    lessons: [
+      {
+        title: 'A compra repetida que perdia a corrida respondia "sem estoque"',
+        text: 'Duas requisições com a mesma chave disputavam o último ingresso. A segunda já tinha procurado a chave antes de a primeira gravar, e respondia 409 mesmo repetindo uma compra que deu certo. Agora, depois do rollback, ela procura a chave de novo e devolve o pedido original.',
+      },
+      {
+        title: 'Um pagamento atrasado podia vazar estoque',
+        text: 'Quando um pedido já expirado era pago, o sistema reservava de novo. Se faltasse estoque num lote, os anteriores já tinham sido descontados, e o caminho do reembolso seguia na mesma transação. A re-reserva passou a ser tudo ou nada.',
+      },
+      {
+        title: 'O envio de e-mails não rodava',
+        text: 'A fila não estava registrada no módulo, então o processador de e-mail nunca começou a trabalhar. O teste de integração do CI pegou antes de chegar a qualquer comprador.',
+      },
+      {
+        title: 'O scanner de segurança reprovou a imagem de produção',
+        text: 'O Trivy achou vulnerabilidades altas no npm que vinha dentro da imagem, que nem usava npm para rodar. A imagem final deixou de levar npm, npx e corepack.',
+      },
+      {
+        title: 'Com a API fora do ar, a tela mostrava um erro genérico',
+        text: 'O front repassava um 500 sem o corpo de erro da API. Agora uma falha fora do formato esperado aparece como "serviço indisponível".',
+      },
+    ],
+    numbers: [
+      { value: '727', label: 'testes: 574 de unidade e 153 de integração com Postgres e Redis reais' },
+      { value: '0', label: 'ingressos vendidos a mais com 50 compradores disputando 10, em 10 rodadas seguidas' },
+      { value: '49', label: 'transições do pedido testadas, com 100% de cobertura exigida no CI' },
+      { value: '18', label: 'decisões registradas, cada uma com as alternativas descartadas' },
+    ],
+    next: [
+      'Publicar com um link público; hoje o sistema roda localmente, com Docker Compose.',
+      'Teste de ponta a ponta com Playwright (organizador publica, comprador paga, ingresso entra uma vez só), em andamento.',
+      'Métricas e rastreamento com OpenTelemetry, revisão de segurança (OWASP) e teste de carga com k6.',
+      'Pix, lista de espera e cupons.',
+    ],
+    docs: [
+      { label: 'arquitetura', href: 'https://github.com/ViniGHub/TicketFlow/blob/main/ARCHITECTURE.md' },
+      { label: 'decisões (ADRs)', href: 'https://github.com/ViniGHub/TicketFlow/tree/main/docs/adr' },
+    ],
+  },
 ]
 
 export const caseStudyFor = (projectId: string) => caseStudies.find((c) => c.projectId === projectId)
