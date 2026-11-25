@@ -37,6 +37,24 @@ Ele achou o site simples demais e o avatar fraco. O arquivo `ideias-v2.html` (co
   - versão em inglês;
   - modo explorar 3D.
 
+## Escolhas de 25/11/2026
+
+O avatar já está no ar: é o GLB do Meshy, com só a cabeça seguindo o mouse. Para a vitrine e os extras, o Vinicius escolheu:
+
+| O quê | Entra? | Observação |
+|---|---|---|
+| Janela ao vivo | Feito | agenda-ia e Sinal, que têm demo pública. O iframe libera microfone, câmera e captura de tela para o Sinal. |
+| Mini-demo jogável | Feito | TicketFlow, que não tem demo pública: compra, webhook repetido e esgotado. |
+| Vitrine em movimento | Não | Disputaria espaço com os diagramas presos. |
+| Paleta Ctrl+K | Sim | |
+| "Mexendo agora" | Sim | Último commit público, pela API do GitHub. |
+| Linha do tempo | Sim | Na seção Sobre. |
+| Estudo de caso por projeto | Sim | Uma página por projeto. O rascunho do texto passa pela revisão dele. |
+| Versão em inglês | Sim | Melhor deixar por último, depois que os textos estabilizarem. |
+| Modo explorar 3D | Depois | Continua guardado (ideia C). |
+
+Os tratamentos de avatar do protótipo (escultura, pontos, curvas) ficaram de lado, porque o avatar texturizado do Meshy já entrou.
+
 ## Ideia C: o ambiente 3D (para depois)
 
 A página inteira é uma cena 3D do "canto" do Vinicius: uma mesa com monitor, celular e um ingresso, e o avatar atrás dela. Rolar a página move a câmera por cinco paradas:

@@ -1,9 +1,14 @@
 import Lenis from 'lenis'
-import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { gsap, prefersReducedMotion, ScrollTrigger } from './motion'
 
 type ScrollTo = (target: string | number) => void
-const SmoothScrollContext = createContext<ScrollTo>(() => {})
+type SmoothScrollApi = {
+  scrollTo: ScrollTo
+  /** Stops the page from scrolling (while a modal is open) and lets it scroll again. */
+  pause: (paused: boolean) => void
+}
+const SmoothScrollContext = createContext<SmoothScrollApi>({ scrollTo: () => {}, pause: () => {} })
 
 /** Height of the fixed top bar: in-page links stop just below it. */
 const BAR_OFFSET = 72
@@ -42,7 +47,15 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  return <SmoothScrollContext.Provider value={scrollTo}>{children}</SmoothScrollContext.Provider>
+  // Lenis listens to the wheel on the whole window, so a modal must stop it explicitly.
+  const pause = useCallback((paused: boolean) => {
+    if (paused) lenis.current?.stop()
+    else lenis.current?.start()
+  }, [])
+
+  const api = useMemo(() => ({ scrollTo, pause }), [scrollTo, pause])
+  return <SmoothScrollContext.Provider value={api}>{children}</SmoothScrollContext.Provider>
 }
 
-export const useScrollTo = () => useContext(SmoothScrollContext)
+export const useScrollTo = () => useContext(SmoothScrollContext).scrollTo
+export const usePauseScroll = () => useContext(SmoothScrollContext).pause

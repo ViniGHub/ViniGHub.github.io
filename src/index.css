@@ -11,6 +11,8 @@
   --color-soft: #b4b8bf;
   --color-muted: #878c95;
   --color-accent: #c6f35e;
+  /* Only for a log line that warns (a webhook arriving twice); never a second accent. */
+  --color-warn: #f5b85e;
 
   --font-sans: "Geist Variable", system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
@@ -59,6 +61,21 @@ html.lenis body {
     linear-gradient(var(--color-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+/* A modal rises a little as it opens; a log line slides in from the left. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+}
+@keyframes loading-bar {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
 }
 
 @keyframes drip {

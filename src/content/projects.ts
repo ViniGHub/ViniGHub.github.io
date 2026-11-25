@@ -19,6 +19,24 @@ export type DiagramNode = {
 export type Wire = { d: string; step: number; thick?: boolean }
 export type LogLine = { text: string; step: number; ok?: boolean }
 
+/** The real demo, opened inside the page in a large window. */
+export type LiveShowcase = {
+  kind: 'live'
+  title: string
+  text: string
+  /** Address the window opens. */
+  url: string
+  /** A capture of the demo, shown until the visitor clicks. */
+  shot: { src: string; alt: string }
+  /** Shown in the window's bar: what to expect (a sleeping server, a microphone prompt). */
+  hint: string
+  /** Browser features the demo needs inside the frame (iframe `allow`). */
+  allow?: string
+}
+
+/** A toy version of the problem, playable on the page (for projects without a public demo). */
+export type ToyShowcase = { kind: 'toy'; title: string; text: string }
+
 export type Project = {
   id: string
   name: string
@@ -28,6 +46,8 @@ export type Project = {
   links: { code: string; demo?: string }
   diagram: { caption: string; nodes: DiagramNode[]; wires: Wire[]; notes?: { x: number; y: number; text: string }[] }
   log: LogLine[]
+  /** How the visitor tries the project right here, after reading how it works. */
+  showcase: LiveShowcase | ToyShowcase
 }
 
 export const projects: Project[] = [
@@ -63,6 +83,15 @@ export const projects: Project[] = [
       { text: '> compose() → 2 citações válidas', step: 9 },
       { text: '< 200 OK · resposta com fonte', step: 10, ok: true },
     ],
+    showcase: {
+      kind: 'live',
+      title: 'Pergunte você mesmo',
+      text: 'A demo usa uma agenda fictícia de novembro. Pergunte quando é o dentista ou peça para marcar um almoço, e veja de qual compromisso saiu cada resposta.',
+      url: 'https://agenda-ia.web.app/#demo',
+      shot: { src: '/shots/agenda-ia.jpg', alt: 'agenda-ia respondendo "Quando é o dentista?" com o compromisso de origem destacado no calendário' },
+      hint: 'agenda fictícia · o servidor dorme quando ninguém usa; a primeira resposta pode levar até 1 minuto',
+      allow: 'microphone',
+    },
   },
   {
     id: 'ticketflow',
@@ -99,6 +128,11 @@ export const projects: Project[] = [
       { text: '> outbox · evento gravado com o pedido', step: 9 },
       { text: '< 2 ingressos enviados · cobrado 1x', step: 11, ok: true },
     ],
+    showcase: {
+      kind: 'toy',
+      title: 'Tente cobrar duas vezes',
+      text: 'Uma versão de brinquedo do fluxo, sem servidor. Compre ingressos, faça a Stripe reenviar o webhook e tente comprar depois de esgotar. A cobrança e o estoque não saem do lugar.',
+    },
   },
   {
     id: 'sinal',
@@ -130,5 +164,14 @@ export const projects: Project[] = [
       { text: '> broker sai da conversa', step: 6 },
       { text: '< chamada p2p · nenhum servidor no meio', step: 7, ok: true },
     ],
+    showcase: {
+      kind: 'live',
+      title: 'Abra um canal',
+      text: 'A demo abre aqui mesmo e pede o microfone. Para ver a chamada direta, crie um canal e entre nele de novo por outra aba ou pelo celular.',
+      url: 'https://vinighub.github.io/sinal-app/',
+      shot: { src: '/shots/sinal.jpg', alt: 'Tela inicial do Sinal, com o participante "você" e o convite para compartilhar o link do canal' },
+      hint: 'pede o microfone · para a chamada, entre no mesmo canal por outra aba',
+      allow: 'microphone; camera; display-capture; clipboard-write',
+    },
   },
 ]
