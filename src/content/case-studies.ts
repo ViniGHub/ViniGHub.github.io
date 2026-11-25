@@ -166,6 +166,75 @@ export const caseStudies: CaseStudy[] = [
       { label: 'decisões (ADRs)', href: 'https://github.com/ViniGHub/TicketFlow/tree/main/docs/adr' },
     ],
   },
+  {
+    projectId: 'sinal',
+    title: 'Voz e tela direto entre navegadores',
+    lead: 'Uma sala de voz, câmera e tela compartilhada em que a mídia vai de uma pessoa para a outra, sem servidor no meio. Um servidor público só apresenta as pontas; depois, a conversa segue direta, e a sala sobrevive à saída de quem a criou.',
+    problem: [
+      'Uma chamada em grupo costuma passar por um servidor de mídia, que custa banda e dinheiro. Com WebRTC os navegadores conseguem falar direto, mas alguém ainda precisa apresentar um ao outro, e redes com NAT ou firewall corporativo nem sempre deixam o caminho direto existir.',
+      'A ideia era uma sala que funcionasse só com hospedagem estática e o servidor de sinalização gratuito do PeerJS: sem banco, sem back-end próprio para a conversa.',
+      'E tudo que chega pelo canal de dados foi escrito por um navegador que ninguém aqui controla.',
+    ],
+    steps: [
+      {
+        title: 'Entrar no canal',
+        text: 'O canal é um ID no servidor do PeerJS, que garante um único dono por ID. Quem entra tenta registrar esse ID: se consegue, vira o âncora e o canal passa a existir; se o ID já tem dono, pede ao âncora a lista de quem está na sala.',
+      },
+      {
+        title: 'Formar a malha',
+        text: 'Cada um liga para quem ainda não conhecia, trocando a lista de participantes pelo canal de dados. Quando dois se descobrem no mesmo instante, uma comparação de IDs decide quem liga, para ninguém se ouvir duas vezes.',
+      },
+      {
+        title: 'Falar direto',
+        text: 'Voz, câmera e tela vão ponto a ponto. O âncora só entrega a lista, nunca retransmite mídia. Quando ele sai, os outros disputam o ID com um atraso aleatório e a sala continua.',
+      },
+      {
+        title: 'Atravessar a rede',
+        text: 'STUN descobre o endereço público de cada um. Quando não existe caminho direto, entra um TURN com credenciais temporárias, emitidas por um Cloudflare Worker, para nenhuma senha ir parar no código do navegador.',
+      },
+    ],
+    decisions: [
+      { decision: 'O servidor do PeerJS é o cadeado', why: 'O canal é um ID, e o servidor garante um dono por ID. Quem consegue registrar vira o âncora: sem protocolo de eleição e sem servidor novo.' },
+      { decision: 'A conexão não conhece React, e a tela não conhece WebRTC', why: 'Uma classe é dona de todas as conexões e publica um retrato imutável, que o React lê com useSyncExternalStore. A sessão é testada sem montar nenhum componente.' },
+      { decision: 'Tudo que chega pelo canal de dados é validado', why: 'Formato, tipo e tamanho são conferidos antes de chegar à aplicação. Nomes e mensagens são cortados, a lista de participantes tem teto e mensagem desconhecida é descartada.' },
+      { decision: 'Credenciais de TURN temporárias, por um Worker', why: 'Tudo que vai no código do navegador é público. Uma senha fixa de TURN ali deixaria qualquer pessoa gastar a cota; o Worker guarda a chave e entrega credenciais com prazo.' },
+      { decision: 'Malha completa, sem servidor de mídia', why: 'Grátis e com a menor latência possível. O preço é a banda: acima de umas 6 pessoas, o upload de quem compartilha a tela vira o gargalo.' },
+      { decision: 'Testes de ponta a ponta com dois navegadores de verdade', why: 'Todo bug que chegou à produção era de integração, com cada função certa isoladamente. Cada participante ganha um navegador separado, com câmera e microfone sintéticos; duas abas dividiriam a identidade e não provariam nada.' },
+    ],
+    lessons: [
+      {
+        title: 'O canal nunca ganhava âncora ao entrar por link',
+        text: 'O código pedia a lista ao ID do canal antes de tentar registrá-lo. Só que ligar para um ID vago no PeerJS não responde nada até o servidor expirar a mensagem, vários segundos depois: um canal vazio parecia morto e ninguém virava âncora. A ordem foi invertida: primeiro registrar, e só pedir a lista se o ID já tiver dono.',
+      },
+      {
+        title: 'Uma configuração de rede deixou a produção pior',
+        text: 'Passar uma lista própria de servidores ao PeerJS substitui a lista padrão inteira, e a padrão trazia um TURN gratuito. Sem nada configurado, a produção ficou só com STUN, e chamadas atrás de NAT simétrico deixaram de conectar. Agora a padrão é mantida quando nada é configurado, e um teste trava a regra.',
+      },
+      {
+        title: 'Arquivos grandes sumiam sem erro',
+        text: 'O PeerJS entrega um envio pequeno como ArrayBuffer, mas um fatiado e remontado como Uint8Array. O código só aceitava o primeiro tipo, então tudo acima de uns 16 KB era descartado em silêncio. O teste usava um arquivo de 20 bytes e passava; agora ele passa do limite de fatiamento.',
+      },
+      {
+        title: 'No celular, a barra de controles cobria os botões',
+        text: 'A altura da barra era uma constante de 76 px, que só valia numa tela larga; num telefone ela quebrava em várias linhas. A altura passou a ser medida do elemento real, e em telas estreitas a barra virou uma fila que rola para o lado.',
+      },
+      {
+        title: 'A primeira versão tinha dois defeitos graves',
+        text: 'Era um index.html de 460 linhas. O ID escolhido por quem conecta ia direto para o innerHTML (injeção de HTML), e a topologia era uma estrela: dois convidados nunca se ouviam. A reescrita em React e TypeScript passou a validar tudo que chega e trocou a estrela pela malha.',
+      },
+    ],
+    numbers: [
+      { value: '0', label: 'servidores de mídia no caminho da voz, da câmera e da tela' },
+      { value: '88', label: 'testes de lógica (Vitest), que rodam em milissegundos' },
+      { value: '14', label: 'testes de ponta a ponta, com dois navegadores se encontrando de verdade' },
+      { value: '~6', label: 'pessoas por sala antes de o upload virar gargalo' },
+    ],
+    next: [
+      'Um servidor de sinalização próprio: o do PeerJS é gratuito, mas não tem garantia de disponibilidade. Com ele, os testes de ponta a ponta passam a poder barrar o deploy, o que hoje não fazem justamente por depender do servidor público.',
+      'Para grupos maiores, um SFU: um servidor que recebe cada fluxo uma vez e redistribui.',
+    ],
+    docs: [{ label: 'arquitetura', href: 'https://github.com/ViniGHub/sinal-app#arquitetura' }],
+  },
 ]
 
 export const caseStudyFor = (projectId: string) => caseStudies.find((c) => c.projectId === projectId)
