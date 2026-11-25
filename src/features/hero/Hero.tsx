@@ -3,6 +3,7 @@ import { profile } from '@/content/profile'
 import { projects } from '@/content/projects'
 import { gsap, prefersReducedMotion, SplitText, useGSAP } from '@/lib/motion'
 import { useScrollTo } from '@/lib/smooth-scroll'
+import { LatestCommit } from './LatestCommit'
 
 const Avatar = lazy(() => import('./Avatar'))
 
@@ -67,6 +68,7 @@ export function Hero() {
               <dd>{value}</dd>
             </div>
           ))}
+          <LatestCommit />
         </dl>
       </div>
 

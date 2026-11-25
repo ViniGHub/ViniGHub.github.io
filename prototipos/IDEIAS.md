@@ -46,8 +46,8 @@ O avatar já está no ar: é o GLB do Meshy, com só a cabeça seguindo o mouse.
 | Janela ao vivo | Feito | agenda-ia e Sinal, que têm demo pública. O iframe libera microfone, câmera e captura de tela para o Sinal. |
 | Mini-demo jogável | Feito | TicketFlow, que não tem demo pública: compra, webhook repetido e esgotado. |
 | Vitrine em movimento | Não | Disputaria espaço com os diagramas presos. |
-| Paleta Ctrl+K | Sim | |
-| "Mexendo agora" | Sim | Último commit público, pela API do GitHub. |
+| Paleta Ctrl+K | Feito | cmdk (a base do Command do shadcn): ir para as seções, testar os projetos, abrir código e perfis, copiar o link. |
+| "Mexendo agora" | Feito | Último commit público fora do próprio portfólio, numa linha dos fatos do topo. O feed de eventos do GitHub não traz mais os commits, então o site pede o repositório com push mais recente e o último commit dele. |
 | Linha do tempo | Sim | Na seção Sobre. |
 | Estudo de caso por projeto | Sim | Uma página por projeto. O rascunho do texto passa pela revisão dele. |
 | Versão em inglês | Sim | Melhor deixar por último, depois que os textos estabilizarem. |

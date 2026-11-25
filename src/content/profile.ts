@@ -27,4 +27,6 @@ export const profile = {
     { label: 'linkedin', href: 'https://www.linkedin.com/in/vini-rodri' },
     { label: 'github', href: 'https://github.com/ViniGHub' },
   ],
+  /** GitHub account whose latest public commit the hero shows ("mexendo agora"). */
+  githubUser: 'ViniGHub',
 } as const

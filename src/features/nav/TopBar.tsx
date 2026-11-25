@@ -1,10 +1,11 @@
-import type { MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { projects } from '@/content/projects'
 import { profile } from '@/content/profile'
 import { useAtPageEnd, useSectionInView } from '@/hooks/use-section-in-view'
 import { useScrollTo } from '@/lib/smooth-scroll'
 import { cn } from '@/lib/utils'
+import { paletteShortcut, useCommandPalette } from './command-palette'
 
 // Each mark of the bar and the sections that count as it. The three projects count as "projetos".
 const MARKS = [
@@ -16,6 +17,9 @@ const MARKS = [
 /** Always on screen: the visitor can go back to the top or jump to the contact from anywhere. */
 export function TopBar() {
   const scrollTo = useScrollTo()
+  const palette = useCommandPalette()
+  const [shortcut, setShortcut] = useState('ctrl K')
+  useEffect(() => setShortcut(paletteShortcut()), [])
   const inView = useSectionInView(MARKS.flatMap((m) => [...m.sections]).concat('#contato'))
   const atEnd = useAtPageEnd()
   // Contato is short and sits at the end, so it may never reach the middle of the screen.
@@ -48,6 +52,16 @@ export function TopBar() {
               {mark.label}
             </a>
           ))}
+          {/* Phones have no keyboard shortcut to show, and the bar is already full there. */}
+          <button
+            type="button"
+            onClick={palette.open}
+            aria-label="Abrir os comandos"
+            aria-keyshortcuts="Control+K Meta+K"
+            className="border border-line-strong bg-panel px-2 py-1 text-[11px] text-soft transition-colors hover:border-accent hover:text-accent max-md:hidden"
+          >
+            {shortcut}
+          </button>
           <Button asChild variant="accent" size="sm">
             <a href="#contato" onClick={go('#contato')} aria-current={current === 'contato' ? 'location' : undefined}>
               contato
