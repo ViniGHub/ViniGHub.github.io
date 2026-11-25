@@ -1,4 +1,5 @@
 import type { Project } from '@/content/projects'
+import { ui } from '@/i18n/ui'
 
 /**
  * The drawing of a system: dashed guides underneath, then the wires and boxes that light up in order.
@@ -7,7 +8,7 @@ import type { Project } from '@/content/projects'
  */
 export function SystemDiagram({ diagram, lit = false }: { diagram: Project['diagram']; lit?: boolean }) {
   return (
-    <svg viewBox="0 0 640 320" className="w-full" role="img" aria-label={`Diagrama: ${diagram.caption}`}>
+    <svg viewBox="0 0 640 320" className="w-full" role="img" aria-label={`${ui.project.diagram}: ${diagram.caption}`}>
       {diagram.wires.map((wire) => (
         <path key={`bg-${wire.d}`} d={wire.d} className="fill-none stroke-line-strong [stroke-dasharray:3_4]" />
       ))}

@@ -6,12 +6,14 @@ import { useAtPageEnd, useSectionInView } from '@/hooks/use-section-in-view'
 import { useScrollTo } from '@/lib/smooth-scroll'
 import { cn } from '@/lib/utils'
 import { paletteShortcut, useCommandPalette } from './command-palette'
+import { ui } from '@/i18n/ui'
+import { LanguageSwitch } from './LanguageSwitch'
 
 // Each mark of the bar and the sections that count as it. The three projects count as "projetos".
 const MARKS = [
-  { id: 'inicio', label: '↑ início', sections: ['#inicio'] },
-  { id: 'projetos', label: 'projetos', sections: ['#projetos', ...projects.map((p) => `#${p.id}`)] },
-  { id: 'sobre', label: 'sobre', sections: ['#sobre'] },
+  { id: 'inicio', label: ui.nav.home, sections: ['#inicio'] },
+  { id: 'projetos', label: ui.nav.projects, sections: ['#projetos', ...projects.map((p) => `#${p.id}`)] },
+  { id: 'sobre', label: ui.nav.about, sections: ['#sobre'] },
 ] as const
 
 /** Always on screen: the visitor can go back to the top or jump to the contact from anywhere. */
@@ -32,11 +34,11 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg">
-      <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-8 py-4" aria-label="Seções">
-        <a href="#inicio" onClick={go('#inicio')} className="font-mono font-medium" aria-label="Voltar ao início">
+      <nav className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-8 py-4 max-sm:px-5" aria-label={ui.nav.sections}>
+        <a href="#inicio" onClick={go('#inicio')} className="font-mono font-medium" aria-label={ui.nav.backHome}>
           vr<span className="text-accent">/</span>{profile.handle}
         </a>
-        <div className="flex items-center gap-6 font-mono text-xs text-muted">
+        <div className="flex items-center gap-6 font-mono text-xs whitespace-nowrap text-muted max-sm:gap-3">
           {MARKS.map((mark) => (
             <a
               key={mark.id}
@@ -56,15 +58,16 @@ export function TopBar() {
           <button
             type="button"
             onClick={palette.open}
-            aria-label="Abrir os comandos"
+            aria-label={ui.nav.openCommands}
             aria-keyshortcuts="Control+K Meta+K"
             className="border border-line-strong bg-panel px-2 py-1 text-[11px] text-soft transition-colors hover:border-accent hover:text-accent max-md:hidden"
           >
             {shortcut}
           </button>
+          <LanguageSwitch hash={current === 'inicio' ? '' : `#${current}`} />
           <Button asChild variant="accent" size="sm">
             <a href="#contato" onClick={go('#contato')} aria-current={current === 'contato' ? 'location' : undefined}>
-              contato
+              {ui.nav.contact}
             </a>
           </Button>
         </div>

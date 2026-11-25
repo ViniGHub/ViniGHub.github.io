@@ -12,11 +12,15 @@ import { TopBar } from '@/features/nav/TopBar'
 import { LiveDemoProvider } from '@/features/projects/live-demo'
 import { ProjectIndex } from '@/features/projects/ProjectIndex'
 import { ProjectSection } from '@/features/projects/ProjectSection'
+import { caseStudyIdFrom, lang } from '@/i18n/lang'
 import { SmoothScroll, useScrollTo } from '@/lib/smooth-scroll'
 
-/** A case study lives at /projetos/<id>/ (the build writes one HTML file per study); anything else is the home page. */
+/**
+ * A case study lives at /projetos/<id>/ or /en/projects/<id>/ (the build writes one HTML file per study and
+ * language); anything else is the home page.
+ */
 function currentCaseStudy() {
-  const id = window.location.pathname.match(/^\/projetos\/([^/]+)\/?$/)?.[1]
+  const id = caseStudyIdFrom(window.location.pathname)
   const study = id ? caseStudyFor(id) : undefined
   const project = study && projects.find((p) => p.id === study.projectId)
   return study && project ? { study, project } : null
@@ -59,6 +63,11 @@ function Home() {
 
 export function App() {
   const caseStudy = currentCaseStudy()
+  // The built HTML already says it; this covers development, where every address gets the same index.html.
+  useEffect(() => {
+    document.documentElement.lang = lang === 'en' ? 'en' : 'pt-BR'
+    if (!caseStudy) document.title = lang === 'en' ? 'Vinicius Rodrigues · front-end developer' : 'Vinicius Rodrigues · desenvolvedor front-end'
+  }, [caseStudy])
   return (
     <SmoothScroll>
       <LiveDemoProvider>{caseStudy ? <CaseStudyPage study={caseStudy.study} project={caseStudy.project} /> : <Home />}</LiveDemoProvider>

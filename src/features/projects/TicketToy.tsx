@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { ui } from '@/i18n/ui'
 
 type Tone = 'ok' | 'warn'
 type Line = { id: number; text: string; tone?: Tone }
@@ -53,20 +54,20 @@ export function TicketToy() {
   const buy = () =>
     sequence(
       async (say) => {
-        await say('> POST /checkout · 2 ingressos')
+        await say(ui.toy.say.checkout)
         if (stock < 2) {
-          await say('> reserva atômica · recusada', 'warn')
-          await say('< 409 esgotado · nada cobrado', 'ok')
+          await say(ui.toy.say.refused, 'warn')
+          await say(ui.toy.say.soldOut, 'ok')
           return
         }
         const order = orderName(paid.length)
-        await say(`> reserva atômica · estoque ${stock} → ${stock - 2}`)
+        await say(ui.toy.say.reserved(stock, stock - 2))
         setStock(stock - 2)
         await say('> stripe → session.completed')
-        await say(`> webhook · pedido ${order} pago`)
+        await say(ui.toy.say.paid(order))
         setPaid([...paid, order])
-        await say('> outbox · e-mail com 2 ingressos')
-        await say(`< ${order} · cobrado 1x`, 'ok')
+        await say(ui.toy.say.outbox)
+        await say(ui.toy.say.chargedOnce(order), 'ok')
       },
       { clear: true },
     )
@@ -74,9 +75,9 @@ export function TicketToy() {
   const replayWebhook = () =>
     sequence(async (say) => {
       const order = paid[paid.length - 1]
-      await say(`> webhook do ${order} chegou de novo`, 'warn')
-      await say('> idempotente · já processado')
-      await say(`< ${order} continua cobrado 1x`, 'ok')
+      await say(ui.toy.say.again(order), 'warn')
+      await say(ui.toy.say.idempotent)
+      await say(ui.toy.say.stillOnce(order), 'ok')
     })
 
   const reset = () => {
@@ -90,37 +91,37 @@ export function TicketToy() {
   return (
     <div className="grid gap-4 border border-line-strong bg-panel p-4 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
       <div className="border border-dashed border-line-strong p-4">
-        <p className="label">show de sábado · pista</p>
-        <p className="mt-1.5 text-xl font-semibold">Banda Exemplo</p>
+        <p className="label">{ui.toy.show}</p>
+        <p className="mt-1.5 text-xl font-semibold">{ui.toy.band}</p>
         <p className="mt-3.5 font-mono text-[44px] leading-none">
           {stock}
-          <small className="ml-2 text-[13px] text-muted">{stock === 1 ? 'ingresso' : 'ingressos'}</small>
+          <small className="ml-2 text-[13px] text-muted">{ui.toy.tickets(stock)}</small>
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="accent" onClick={buy} disabled={busy}>
-            {stock < 2 ? 'tentar comprar 2' : 'comprar 2 ingressos'}
+            {stock < 2 ? ui.toy.tryBuy : ui.toy.buy}
           </Button>
           <Button onClick={replayWebhook} disabled={busy || paid.length === 0}>
-            Stripe reenviou o webhook
+            {ui.toy.replay}
           </Button>
         </div>
         <dl className="mt-4 flex gap-6">
           <div>
-            <dt className="label">cobranças</dt>
+            <dt className="label">{ui.toy.charges}</dt>
             <dd className="font-mono text-[22px]">{paid.length}</dd>
           </div>
           <div>
-            <dt className="label">ingressos emitidos</dt>
+            <dt className="label">{ui.toy.issued}</dt>
             <dd className="font-mono text-[22px]">{paid.length * 2}</dd>
           </div>
         </dl>
         <Button variant="ghost" size="sm" className="mt-2 px-0" onClick={reset}>
-          recomeçar
+          {ui.toy.reset}
         </Button>
       </div>
-      <div role="log" aria-label="Log da compra" className="min-h-[230px] border border-line bg-node p-3 font-mono text-[12.5px] leading-[1.9]">
+      <div role="log" aria-label={ui.toy.logLabel} className="min-h-[230px] border border-line bg-node p-3 font-mono text-[12.5px] leading-[1.9]">
         {lines.length === 0 ? (
-          <p className="label">// log · clique em comprar</p>
+          <p className="label">{ui.toy.logEmpty}</p>
         ) : (
           lines.map((line) => (
             <p key={line.id} className={cn('truncate whitespace-pre motion-safe:animate-[slide-in_0.3s_ease-out]', line.tone === 'ok' && 'text-accent', line.tone === 'warn' && 'text-warn')}>

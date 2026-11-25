@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { profile } from '@/content/profile'
 import { gsap, prefersReducedMotion, useGSAP } from '@/lib/motion'
 import { Timeline } from './Timeline'
+import { ui } from '@/i18n/ui'
 
 export function About() {
   const root = useRef<HTMLElement>(null)
@@ -15,8 +16,8 @@ export function About() {
     <section ref={root} id="sobre" aria-labelledby="sobre-title" className="border-t border-line py-28">
       <div className="mx-auto grid max-w-[1200px] gap-14 px-8 md:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p data-reveal className="label">// sobre</p>
-          <h2 data-reveal id="sobre-title" className="mt-2.5 text-[clamp(2.1rem,4.4vw,3.5rem)] font-semibold tracking-[-0.03em]">Sobre</h2>
+          <p data-reveal className="label">{ui.about.label}</p>
+          <h2 data-reveal id="sobre-title" className="mt-2.5 text-[clamp(2.1rem,4.4vw,3.5rem)] font-semibold tracking-[-0.03em]">{ui.about.title}</h2>
           <p data-reveal className="mt-3.5 max-w-[44em] text-[17px] leading-relaxed text-soft">{profile.about}</p>
         </div>
         <dl className="self-start border-t border-line font-mono text-xs">

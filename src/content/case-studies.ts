@@ -1,5 +1,9 @@
+// Relative on purpose: vite.config.ts imports this file, and the '@' alias does not exist there.
+import { lang } from '../i18n/lang'
+import { caseStudiesEn } from './case-studies.en'
+
 /**
- * Case studies: one page per project, at /projetos/<id>/. The text is a draft that Vinicius reviews before
+ * Case studies: one page per project, at /projetos/<id>/ (and /en/projects/<id>/, from case-studies.en.ts). The text is a draft that Vinicius reviews before
  * it goes live; every number here comes from the project's repository (README, docs, tests).
  */
 
@@ -20,7 +24,7 @@ export type CaseStudy = {
   docs?: { label: string; href: string }[]
 }
 
-export const caseStudies: CaseStudy[] = [
+export const caseStudiesPt: CaseStudy[] = [
   {
     projectId: 'agenda-ia',
     title: 'Uma agenda que responde citando a fonte',
@@ -237,7 +241,7 @@ export const caseStudies: CaseStudy[] = [
   },
 ]
 
-export const caseStudyFor = (projectId: string) => caseStudies.find((c) => c.projectId === projectId)
+/** The case studies in the page's language. */
+export const caseStudies = lang === 'en' ? caseStudiesEn : caseStudiesPt
 
-/** The address of a project's case study page. */
-export const caseStudyPath = (projectId: string) => `/projetos/${projectId}/`
+export const caseStudyFor = (projectId: string) => caseStudies.find((c) => c.projectId === projectId)

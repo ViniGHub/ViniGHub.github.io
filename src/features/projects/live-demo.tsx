@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { projects, type LiveShowcase, type Project } from '@/content/projects'
 import { usePauseScroll } from '@/lib/smooth-scroll'
 import { cn } from '@/lib/utils'
+import { ui } from '@/i18n/ui'
 
 type LiveDemoApi = { open: (projectId: string) => void }
 const LiveDemoContext = createContext<LiveDemoApi>({ open: () => {} })
@@ -70,26 +71,28 @@ function DemoWindow({ name, showcase, onClosed }: { name: string; showcase: Live
         className="fixed inset-0 z-[81] mx-auto flex max-w-[1440px] flex-col bg-panel md:inset-x-[3vw] md:inset-y-[3vh] md:border md:border-line-strong md:shadow-[0_50px_120px_-40px_rgb(0_0_0/0.9)] motion-safe:animate-[rise-in_0.45s_var(--ease-out-soft)]"
       >
         <div className="flex items-center gap-2.5 border-b border-line px-3 py-2.5">
-          <Dialog.Title className="sr-only">Demo do {name}</Dialog.Title>
+          <Dialog.Title className="sr-only">{ui.demo.demoOf(name)}</Dialog.Title>
           <span className="min-w-0 flex-1 truncate border border-line bg-node px-2.5 py-1.5 font-mono text-xs text-soft">{shortUrl(showcase.url)}</span>
           <a href={showcase.url} target="_blank" rel="noreferrer" className={barButton}>
-            <span className="max-sm:hidden">abrir em </span>nova aba ↗
+            <span className="max-sm:hidden">{ui.demo.newTabLong}</span>
+            {ui.demo.newTab}
           </a>
           <Dialog.Close ref={close} className={barButton}>
-            fechar<span className="max-sm:hidden"> · esc</span>
+            {ui.demo.close}
+            <span className="max-sm:hidden"> · esc</span>
           </Dialog.Close>
         </div>
         <Dialog.Description className="border-b border-line px-3 py-2 font-mono text-xs text-muted">{showcase.hint}</Dialog.Description>
         <div className="relative flex-1 bg-bg">
           <iframe
             src={showcase.url}
-            title={`Demo do ${name}`}
+            title={ui.demo.demoOf(name)}
             allow={showcase.allow}
             onLoad={() => window.setTimeout(() => setLoaded(true), 300)}
             className="absolute inset-0 size-full border-0"
           />
           <div aria-hidden className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3.5 bg-bg transition-opacity duration-500', loaded && 'pointer-events-none opacity-0')}>
-            <span className="font-mono text-xs text-text">abrindo a demo…</span>
+            <span className="font-mono text-xs text-text">{ui.demo.loading}</span>
             <span className="relative h-0.5 w-44 overflow-hidden bg-line-strong">
               <span className="absolute inset-y-0 left-0 w-2/5 bg-accent motion-safe:animate-[loading-bar_1.2s_ease-in-out_infinite]" />
             </span>
@@ -112,14 +115,15 @@ export function LiveWindow({ project, showcase }: { project: Project; showcase: 
       <div className="flex items-center gap-3 border-b border-line px-3 py-2">
         <span className="min-w-0 flex-1 truncate border border-line bg-node px-2.5 py-1 font-mono text-xs text-soft">{shortUrl(showcase.url)}</span>
         <a href={showcase.url} target="_blank" rel="noreferrer" className="font-mono text-xs text-accent hover:underline">
-          abrir ↗
+          {ui.demo.open}
         </a>
       </div>
       <button type="button" onClick={() => demo.open(project.id)} className="group relative block aspect-[1568/744] w-full cursor-pointer overflow-hidden bg-black">
         <img src={showcase.shot.src} alt={showcase.shot.alt} loading="lazy" className="size-full object-cover motion-safe:transition-[transform,filter] motion-safe:duration-700 motion-safe:group-hover:scale-[1.03] group-hover:blur-[1px]" />
         <span className="absolute inset-0 flex items-center justify-center transition-colors duration-500 group-hover:bg-bg/45 group-focus-visible:bg-bg/45">
           <span className="bg-accent px-4.5 py-3 font-mono text-sm text-bg transition-[opacity,translate] duration-300 pointer-fine:translate-y-2 pointer-fine:opacity-0 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-            <span aria-hidden>▶ </span>testar aqui mesmo
+            <span aria-hidden>▶ </span>
+            {ui.demo.tryHere}
           </span>
         </span>
       </button>

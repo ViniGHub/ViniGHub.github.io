@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { profile } from '@/content/profile'
+import { locale } from '@/i18n/lang'
+import { ui } from '@/i18n/ui'
 
 type Commit = { repo: string; message: string; url: string; date: string }
 type State = { status: 'loading' } | { status: 'ready'; commit: Commit } | { status: 'failed' }
@@ -51,13 +53,13 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['hour', 3_600],
   ['minute', 60],
 ]
-const relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
 
-/** "há 2 horas", "ontem", "há 3 dias"; under a minute, "agora". */
+/** "há 2 horas", "ontem", "há 3 dias" (or "2 hours ago", "yesterday"); under a minute, "agora". */
 function since(iso: string, now = Date.now()) {
   const seconds = (Date.parse(iso) - now) / 1000
   const unit = UNITS.find(([, size]) => Math.abs(seconds) >= size)
-  return unit ? relative.format(Math.round(seconds / unit[1]), unit[0]) : 'agora'
+  return unit ? relative.format(Math.round(seconds / unit[1]), unit[0]) : ui.hero.justNow
 }
 
 /** One row of the hero's facts: when and where the last public commit happened, linking to it. */
@@ -85,11 +87,11 @@ export function LatestCommit() {
     <div data-fact className="grid grid-cols-[140px_1fr] border-b border-line py-3.5 text-[15px]">
       <dt className="label pt-0.5">
         <span aria-hidden className="mr-1.5 inline-block size-1.5 rounded-full bg-accent align-middle motion-safe:animate-pulse" />
-        mexendo agora
+        {ui.hero.nowLabel}
       </dt>
       {/* Two lines are reserved from the start, so nothing jumps when GitHub answers. */}
       <dd className="min-h-[2lh] min-w-0">
-        {state.status === 'loading' && <span className="text-muted">olhando o GitHub…</span>}
+        {state.status === 'loading' && <span className="text-muted">{ui.hero.nowLoading}</span>}
         {state.status === 'failed' && (
           <a href={`https://github.com/${profile.githubUser}`} target="_blank" rel="noreferrer" className="hover:text-accent">
             github.com/{profile.githubUser} ↗
@@ -98,7 +100,7 @@ export function LatestCommit() {
         {state.status === 'ready' && (
           <a href={state.commit.url} target="_blank" rel="noreferrer" className="group block" title={state.commit.message}>
             <span>
-              {since(state.commit.date)} em <span className="font-mono text-[14px] text-accent">{state.commit.repo}</span>
+              {since(state.commit.date)} {ui.hero.nowIn} <span className="font-mono text-[14px] text-accent">{state.commit.repo}</span>
             </span>
             <span className="block truncate font-mono text-[13px] text-muted group-hover:text-soft">{state.commit.message}</span>
           </a>

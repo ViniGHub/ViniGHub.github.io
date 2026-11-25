@@ -6,6 +6,9 @@ import { projects, type Project } from '@/content/projects'
 import { SiteFooter } from '@/features/nav/SiteFooter'
 import { useLiveDemo } from '@/features/projects/live-demo'
 import { SystemDiagram } from '@/features/projects/SystemDiagram'
+import { homePath, homeSection } from '@/i18n/lang'
+import { ui } from '@/i18n/ui'
+import { LanguageSwitch } from '@/features/nav/LanguageSwitch'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -13,17 +16,19 @@ const pad = (n: number) => String(n).padStart(2, '0')
 function CaseTopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg">
-      <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-8 py-4" aria-label="Navegação">
-        <a href="/" className="font-mono font-medium" aria-label="Voltar ao portfólio">
+      <nav className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-8 py-4 max-sm:px-5" aria-label={ui.nav.sections}>
+        <a href={homePath()} className="font-mono font-medium" aria-label={ui.nav.backToPortfolio}>
           vr<span className="text-accent">/</span>
           {profile.handle}
         </a>
-        <div className="flex items-center gap-6 font-mono text-xs text-muted">
-          <a href="/#projetos" className="text-text transition-colors hover:text-accent">
-            ← <span className="max-sm:hidden">todos os </span>projetos
+        <div className="flex items-center gap-6 font-mono text-xs whitespace-nowrap text-muted max-sm:gap-3">
+          <a href={homeSection('projetos')} className="text-text transition-colors hover:text-accent">
+            ← <span className="max-sm:hidden">{ui.nav.allProjects}</span>
+            <span className="sm:hidden">{ui.nav.projects}</span>
           </a>
+          <LanguageSwitch />
           <Button asChild variant="accent" size="sm">
-            <a href="/#contato">contato</a>
+            <a href={homeSection('contato')}>{ui.nav.contact}</a>
           </Button>
         </div>
       </nav>
@@ -57,7 +62,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
   useEffect(() => {
     window.scrollTo(0, 0)
     // The build writes this title into the page's HTML; this keeps the tab right in development too.
-    document.title = `${project.name} · estudo de caso · Vinicius Rodrigues`
+    document.title = ui.caseStudy.pageTitle(project.name)
   }, [project.name])
 
   return (
@@ -66,7 +71,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
       <main>
         <header className="mx-auto max-w-[1200px] px-8 pt-20 pb-16">
           <p className="font-mono text-xs text-accent">
-            // estudo de caso · projeto {pad(index + 1)} / {pad(projects.length)}
+            {ui.caseStudy.kicker} {pad(index + 1)} / {pad(projects.length)}
           </p>
           <h1 className="mt-2 text-[clamp(3rem,7vw,5.5rem)] leading-[0.95] font-semibold tracking-[-0.035em]">{project.name}</h1>
           <p className="mt-6 max-w-[24em] text-[clamp(1.4rem,2.4vw,2rem)] leading-tight font-semibold tracking-[-0.02em]">{study.title}</p>
@@ -75,16 +80,16 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           <div className="mt-8 flex flex-wrap gap-3">
             {project.showcase.kind === 'live' ? (
               <Button variant="accent" onClick={() => demo.open(project.id)}>
-                testar ▶
+                {ui.caseStudy.tryLive}
               </Button>
             ) : (
               <Button asChild variant="accent">
-                <a href={`/#${project.id}-testar`}>testar a mini-demo</a>
+                <a href={homeSection(`${project.id}-testar`)}>{ui.caseStudy.tryToy}</a>
               </Button>
             )}
             <Button asChild>
               <a href={project.links.code} target="_blank" rel="noreferrer">
-                código ↗
+                {ui.project.code}
               </a>
             </Button>
             {study.docs?.map((doc) => (
@@ -109,7 +114,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           ))}
         </dl>
 
-        <Part n={1} name="O problema">
+        <Part n={1} name={ui.caseStudy.parts.problem}>
           {study.problem.map((paragraph) => (
             <p key={paragraph} className="mb-4 text-[17px] leading-relaxed text-soft last:mb-0">
               {paragraph}
@@ -117,7 +122,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           ))}
         </Part>
 
-        <Part n={2} name="Como funciona">
+        <Part n={2} name={ui.caseStudy.parts.how}>
           <figure className="mb-8 border border-line bg-panel p-4">
             <figcaption className="label mb-2">// {project.diagram.caption}</figcaption>
             <SystemDiagram diagram={project.diagram} lit />
@@ -135,7 +140,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           </ol>
         </Part>
 
-        <Part n={3} name="Decisões">
+        <Part n={3} name={ui.caseStudy.parts.decisions}>
           <dl className="border-t border-line">
             {study.decisions.map((item) => (
               <div key={item.decision} className="grid gap-x-8 gap-y-1.5 border-b border-line py-5 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
@@ -146,7 +151,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           </dl>
         </Part>
 
-        <Part n={4} name="O que deu errado">
+        <Part n={4} name={ui.caseStudy.parts.wrong}>
           <ul className="border-t border-line">
             {study.lessons.map((lesson) => (
               <li key={lesson.title} className="border-b border-line py-5">
@@ -160,7 +165,7 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           </ul>
         </Part>
 
-        <Part n={5} name="Próximos passos">
+        <Part n={5} name={ui.caseStudy.parts.next}>
           <ul className="border-t border-line">
             {study.next.map((item) => (
               <li key={item} className="grid grid-cols-[28px_minmax(0,1fr)] border-b border-line py-4 leading-relaxed text-soft">
@@ -171,12 +176,12 @@ export function CaseStudyPage({ study, project }: { study: CaseStudy; project: P
           </ul>
         </Part>
 
-        <nav aria-label="Outros projetos" className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 border-t border-line px-8 py-12">
-          <a href="/#projetos" className="font-mono text-sm text-text transition-colors hover:text-accent">
-            ← todos os projetos
+        <nav aria-label={ui.caseStudy.others} className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 border-t border-line px-8 py-12">
+          <a href={homeSection('projetos')} className="font-mono text-sm text-text transition-colors hover:text-accent">
+            ← {ui.nav.allProjects}
           </a>
-          <a href={`/#${project.id}`} className="font-mono text-sm text-muted transition-colors hover:text-text">
-            ver o {project.name} no portfólio
+          <a href={homeSection(project.id)} className="font-mono text-sm text-muted transition-colors hover:text-text">
+            {ui.caseStudy.seeOnHome(project.name)}
           </a>
         </nav>
       </main>

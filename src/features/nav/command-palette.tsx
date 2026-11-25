@@ -1,11 +1,13 @@
 import { Command } from 'cmdk'
 import { Dialog } from 'radix-ui'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { caseStudyFor, caseStudyPath } from '@/content/case-studies'
+import { caseStudyFor } from '@/content/case-studies'
 import { profile } from '@/content/profile'
 import { projects } from '@/content/projects'
 import { useLiveDemo } from '@/features/projects/live-demo'
 import { usePauseScroll, useScrollTo } from '@/lib/smooth-scroll'
+import { caseStudyPath, homePath, otherLanguagePath } from '@/i18n/lang'
+import { ui } from '@/i18n/ui'
 
 type PaletteApi = { open: () => void }
 const PaletteContext = createContext<PaletteApi>({ open: () => {} })
@@ -72,31 +74,32 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const groups = useMemo<{ heading: string; actions: Action[] }[]>(
     () => [
       {
-        heading: 'ir para',
+        heading: ui.palette.groups.goTo,
         actions: [
-          { label: 'início', hint: 'topo', keywords: ['avatar', 'home'], run: goTo('#inicio') },
-          { label: 'projetos', hint: 'índice', run: goTo('#projetos') },
-          ...projects.map((p) => ({ label: p.name, hint: 'projeto', keywords: [p.summary], run: goTo(`#${p.id}`) })),
-          { label: 'sobre', hint: 'seção', keywords: ['ferramentas', 'stack'], run: goTo('#sobre') },
-          { label: 'contato', hint: 'seção', keywords: ['linkedin', 'github'], run: goTo('#contato') },
+          { label: ui.palette.top, hint: ui.palette.topHint, keywords: ['avatar', 'home', 'início'], run: goTo('#inicio') },
+          { label: ui.nav.projects, hint: ui.palette.index, run: goTo('#projetos') },
+          ...projects.map((p) => ({ label: p.name, hint: ui.palette.project, run: goTo(`#${p.id}`) })),
+          { label: ui.nav.about, hint: ui.palette.section, keywords: ['stack', 'toolbox'], run: goTo('#sobre') },
+          { label: ui.nav.contact, hint: ui.palette.section, keywords: ['linkedin', 'github'], run: goTo('#contato') },
         ],
       },
       {
-        heading: 'testar',
+        heading: ui.palette.groups.try,
         actions: projects.map((p) =>
           p.showcase.kind === 'live'
-            ? { label: `testar o ${p.name} aqui`, hint: 'janela', keywords: ['demo'], run: () => demo.open(p.id) }
-            : { label: `testar o ${p.name}`, hint: 'mini-demo', keywords: ['demo'], run: goTo(`#${p.id}-testar`) },
+            ? { label: ui.palette.tryHere(p.name), hint: ui.palette.window, keywords: ['demo'], run: () => demo.open(p.id) }
+            : { label: ui.palette.tryToy(p.name), hint: ui.palette.toy, keywords: ['demo'], run: goTo(`#${p.id}-testar`) },
         ),
       },
       {
-        heading: 'abrir',
+        heading: ui.palette.groups.open,
         actions: [
           ...projects
             .filter((p) => caseStudyFor(p.id))
-            .map((p) => ({ label: `estudo de caso do ${p.name}`, hint: 'página', keywords: ['decisões', 'case'], run: () => window.location.assign(caseStudyPath(p.id)) })),
-          ...projects.map((p) => ({ label: `código do ${p.name}`, hint: 'github ↗', keywords: ['repositório', 'source'], run: () => window.open(p.links.code, '_blank', 'noopener') })),
-          ...profile.links.map((link) => ({ label: link.label, hint: 'nova aba ↗', run: () => window.open(link.href, '_blank', 'noopener') })),
+            .map((p) => ({ label: ui.palette.caseStudy(p.name), hint: ui.palette.page, keywords: ['case', 'estudo'], run: () => window.location.assign(caseStudyPath(p.id)) })),
+          ...projects.map((p) => ({ label: ui.palette.code(p.name), hint: 'github ↗', keywords: ['repo', 'source'], run: () => window.open(p.links.code, '_blank', 'noopener') })),
+          ...profile.links.map((link) => ({ label: link.label, hint: ui.palette.newTab, run: () => window.open(link.href, '_blank', 'noopener') })),
+          { label: ui.palette.language, hint: ui.palette.languageHint, keywords: ['english', 'português', 'idioma', 'language'], run: () => window.location.assign(otherLanguagePath(window.location.pathname)) },
         ],
       },
     ],
@@ -110,7 +113,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.origin)
+      await navigator.clipboard.writeText(window.location.origin + homePath())
       setCopied(true)
       window.setTimeout(() => setOpen(false), 700)
     } catch {
@@ -134,15 +137,15 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
             }}
             className="fixed inset-x-0 top-[14vh] z-[71] mx-auto w-[min(560px,calc(100vw-2rem))] border border-line-strong bg-panel shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8)] motion-safe:animate-[rise-in_0.25s_var(--ease-out-soft)]"
           >
-            <Dialog.Title className="sr-only">Comandos</Dialog.Title>
-            <Dialog.Description className="sr-only">Digite para filtrar; as setas escolhem e Enter executa.</Dialog.Description>
-            <Command label="Comandos" loop className="font-mono">
+            <Dialog.Title className="sr-only">{ui.palette.title}</Dialog.Title>
+            <Dialog.Description className="sr-only">{ui.palette.description}</Dialog.Description>
+            <Command label={ui.palette.title} loop className="font-mono">
               <Command.Input
-                placeholder="digite um comando ou uma seção…"
+                placeholder={ui.palette.placeholder}
                 className="w-full border-b border-line bg-transparent px-4.5 py-4 text-sm text-text outline-none placeholder:text-muted"
               />
               <Command.List className="max-h-[min(340px,60vh)] overflow-y-auto overscroll-contain py-1.5 [&_[cmdk-group-heading]]:px-4.5 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-muted">
-                <Command.Empty className="px-4.5 py-4 text-[13px] text-muted">nada encontrado</Command.Empty>
+                <Command.Empty className="px-4.5 py-4 text-[13px] text-muted">{ui.palette.empty}</Command.Empty>
                 {groups.map((group) => (
                   <Command.Group key={group.heading} heading={`// ${group.heading}`}>
                     {group.actions.map((action) => (
@@ -150,11 +153,11 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                     ))}
                   </Command.Group>
                 ))}
-                <Command.Group heading="// copiar">
-                  <Item label="copiar o link do portfólio" hint={copied ? 'copiado ✓' : 'área de transferência'} keywords={['url', 'compartilhar']} onSelect={copyLink} />
+                <Command.Group heading={`// ${ui.palette.groups.copy}`}>
+                  <Item label={ui.palette.copyLink} hint={copied ? ui.palette.copied : ui.palette.clipboard} keywords={['url', 'link']} onSelect={copyLink} />
                 </Command.Group>
               </Command.List>
-              <p className="label border-t border-line px-4.5 py-2.5">↑↓ escolher · enter executar · esc fechar</p>
+              <p className="label border-t border-line px-4.5 py-2.5">{ui.palette.help}</p>
             </Command>
           </Dialog.Content>
         </Dialog.Portal>

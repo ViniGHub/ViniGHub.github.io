@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { profile } from '@/content/profile'
 import { gsap, useGSAP } from '@/lib/motion'
+import { ui } from '@/i18n/ui'
 
 const ACCENT = '#c6f35e'
 const NODE = '#0f1113'
@@ -13,14 +14,14 @@ const monthNumber = (month: string) => {
 }
 const thisMonth = () => new Date().getFullYear() * 12 + new Date().getMonth()
 const showMonth = (month: string) => month.split('-').reverse().join('/')
-const period = (entry: Entry) => `${showMonth(entry.from)} – ${entry.to ? showMonth(entry.to) : 'hoje'}`
+const period = (entry: Entry) => `${showMonth(entry.from)} – ${entry.to ? showMonth(entry.to) : ui.timeline.now}`
 
-/** "2 anos e 11 meses", "4 anos", "10 meses": counts the first and the last month, the way a CV does. */
+/** "2 anos e 11 meses", "4 anos", "10 meses" (or "2 years and 11 months"): counts the first and the last month, the way a CV does. */
 function duration(entry: Entry) {
   const months = (entry.to ? monthNumber(entry.to) : thisMonth()) - monthNumber(entry.from) + 1
   const years = Math.floor(months / 12)
   const rest = months % 12
-  return [years && `${years} ${years === 1 ? 'ano' : 'anos'}`, rest && `${rest} ${rest === 1 ? 'mês' : 'meses'}`].filter(Boolean).join(' e ')
+  return [years && ui.timeline.years(years), rest && ui.timeline.months(rest)].filter(Boolean).join(ui.timeline.and)
 }
 
 /**
@@ -58,8 +59,8 @@ export function Timeline() {
   return (
     <div className="mx-auto mt-24 max-w-[1200px] px-8">
       <div className="mb-4 flex items-baseline justify-between border-b border-line pb-3">
-        <h3 className="label">// trajetória</h3>
-        <p className="label">{first} → hoje</p>
+        <h3 className="label">{ui.timeline.label}</h3>
+        <p className="label">{first} → {ui.timeline.now}</p>
       </div>
       <ol ref={list} className="relative">
         {/* The rail, and over it the part already walked. */}
@@ -77,11 +78,11 @@ export function Timeline() {
                 <p className="mb-1 font-mono text-xs text-soft md:hidden">{period(entry)}</p>
                 <p className="text-[17px] leading-snug">
                   {entry.role} <span className="text-muted">· {entry.place}</span>
-                  {current && <span className="ml-2 bg-accent px-1.5 py-0.5 align-middle font-mono text-[11px] text-bg">agora</span>}
+                  {current && <span className="ml-2 bg-accent px-1.5 py-0.5 align-middle font-mono text-[11px] text-bg">{ui.timeline.current}</span>}
                 </p>
                 {/* A course is known by its nominal length ("4 anos"), which month counting would get wrong, so studies just say they are done. */}
                 <p className="label mt-1">
-                  {entry.kind} · {entry.kind === 'estudo' ? (current ? 'cursando' : 'concluído') : duration(entry)}
+                  {ui.timeline.kind[entry.kind]} · {entry.kind === 'study' ? (current ? ui.timeline.ongoing : ui.timeline.done) : duration(entry)}
                 </p>
               </div>
             </li>

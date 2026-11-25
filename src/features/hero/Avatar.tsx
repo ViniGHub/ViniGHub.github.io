@@ -5,6 +5,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { profile } from '@/content/profile'
 import { pointer, trackPointer } from '@/lib/pointer'
+import { ui } from '@/i18n/ui'
 
 const COLORS = { skin: '#7b8189', hair: '#2a2d31', shirt: '#1b1e22', dark: '#0c0d0f' }
 
@@ -266,7 +267,7 @@ export default function Avatar() {
         gl={{ antialias: true, alpha: true }}
         camera={{ fov: 30, position: [0, -0.35, 7.4] }}
         onCreated={({ camera }) => camera.lookAt(0, LOOK_Y, 0)}
-        aria-label="Avatar 3D de Vinicius; a cabeça acompanha o mouse"
+        aria-label={ui.hero.avatarLabel}
       >
         {/* three.js measures light physically, so these are about π times the old "legacy" values. */}
         <ambientLight intensity={1} />

@@ -1,12 +1,14 @@
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { caseStudyFor, caseStudyPath } from '@/content/case-studies'
+import { caseStudyFor } from '@/content/case-studies'
 import type { Project } from '@/content/projects'
 import { gsap, prefersReducedMotion, useGSAP } from '@/lib/motion'
 import { useScrollTo } from '@/lib/smooth-scroll'
 import { LiveWindow, useLiveDemo } from './live-demo'
 import { SystemDiagram } from './SystemDiagram'
 import { TicketToy } from './TicketToy'
+import { caseStudyPath } from '@/i18n/lang'
+import { ui } from '@/i18n/ui'
 
 const ACCENT = '#c6f35e'
 const LINE = '#33373e'
@@ -69,25 +71,25 @@ export function ProjectSection({ project, index, total }: { project: Project; in
       <div className="mx-auto max-w-[1200px] px-8">
         <header data-head className="mb-9 flex items-end justify-between gap-8 max-md:flex-col max-md:items-start">
           <div>
-            <p className="font-mono text-xs text-accent">projeto {pad(index + 1)} / {pad(total)}</p>
+            <p className="font-mono text-xs text-accent">{ui.project.counter} {pad(index + 1)} / {pad(total)}</p>
             <h2 id={`${project.id}-title`} className="mt-1.5 mb-1 text-[clamp(2.75rem,6vw,5rem)] font-semibold tracking-[-0.03em]">{project.name}</h2>
             <p className="mt-3.5 max-w-[44em] text-[17px] leading-relaxed text-soft">{project.description}</p>
             <p className="label mt-3.5">{project.stack.join(' · ')}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-3">
-            <Button onClick={tryIt}>testar {showcase.kind === 'live' ? '▶' : '↓'}</Button>
-            {hasCaseStudy && <Button asChild><a href={caseStudyPath(project.id)}>estudo de caso →</a></Button>}
-            <Button asChild><a href={project.links.code} target="_blank" rel="noreferrer">código ↗</a></Button>
+            <Button onClick={tryIt}>{ui.project.tryIt} {showcase.kind === 'live' ? '▶' : '↓'}</Button>
+            {hasCaseStudy && <Button asChild><a href={caseStudyPath(project.id)}>{ui.project.caseStudy}</a></Button>}
+            <Button asChild><a href={project.links.code} target="_blank" rel="noreferrer">{ui.project.code}</a></Button>
           </div>
         </header>
 
         {/* minmax(0, …): the log lines never wrap, and without it they would stretch the column past the screen on phones. */}
         <div ref={system} className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
           <figure className="border border-line bg-panel p-4">
-            <figcaption className="label mb-2 flex justify-between"><span>// {project.diagram.caption}</span><span aria-hidden>role ↓</span></figcaption>
+            <figcaption className="label mb-2 flex justify-between"><span>// {project.diagram.caption}</span><span aria-hidden>{ui.project.scroll}</span></figcaption>
             <SystemDiagram diagram={project.diagram} />
           </figure>
-          <div className="border border-line bg-panel p-[18px] font-mono text-[13px] leading-[1.95]" aria-label="Log do pedido">
+          <div className="border border-line bg-panel p-[18px] font-mono text-[13px] leading-[1.95]" aria-label={ui.project.log}>
             <p className="label mb-2.5">// log</p>
             {project.log.map((line) => (
               <p key={line.text} data-step={line.step} data-kind="log" className={line.ok ? 'truncate whitespace-pre text-accent opacity-[0.14]' : 'truncate whitespace-pre opacity-[0.14]'}>
@@ -100,7 +102,7 @@ export function ProjectSection({ project, index, total }: { project: Project; in
         {/* After seeing how it works, the visitor tries it: the real demo, or a toy when there is none. */}
         <div id={tryHere} className="mt-20 grid items-center gap-10 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div>
-            <p className="font-mono text-xs text-accent">// teste você mesmo</p>
+            <p className="font-mono text-xs text-accent">{ui.project.tryYourself}</p>
             <h3 className="mt-2 text-[clamp(1.75rem,3vw,2.5rem)] font-semibold tracking-[-0.03em]">{showcase.title}</h3>
             <p className="mt-3 text-[17px] leading-relaxed text-soft">{showcase.text}</p>
           </div>

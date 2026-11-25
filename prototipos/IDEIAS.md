@@ -50,7 +50,7 @@ O avatar já está no ar: é o GLB do Meshy, com só a cabeça seguindo o mouse.
 | "Mexendo agora" | Feito | Último commit público fora do próprio portfólio, numa linha dos fatos do topo. O feed de eventos do GitHub não traz mais os commits, então o site pede o repositório com push mais recente e o último commit dele. |
 | Linha do tempo | Feito | Na seção Sobre, com as datas do currículo (Etec, FIAP, Ipem-SP, Class Solutions). Os empregos mostram a duração; os estudos, "concluído". |
 | Estudo de caso por projeto | Feito | agenda-ia, TicketFlow e Sinal em /projetos/<id>/, com textos revisados por ele. O texto fica em `src/content/case-studies.ts`. |
-| Versão em inglês | Sim | Melhor deixar por último, depois que os textos estabilizarem. |
+| Versão em inglês | Feito | /en/ e /en/projects/<id>/, com chave pt/en na barra. Textos curtos lado a lado em `t('pt', 'en')`; estudos de caso em `src/content/case-studies.en.ts`. Quando um texto em português mudar, o inglês precisa acompanhar. |
 | Modo explorar 3D | Depois | Continua guardado (ideia C). |
 
 Os tratamentos de avatar do protótipo (escultura, pontos, curvas) ficaram de lado, porque o avatar texturizado do Meshy já entrou.

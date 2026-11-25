@@ -1,6 +1,7 @@
 import { projects } from '@/content/projects'
 import { useSectionInView } from '@/hooks/use-section-in-view'
 import { cn } from '@/lib/utils'
+import { ui } from '@/i18n/ui'
 
 const SELECTORS = projects.map((p) => `#${p.id}`)
 
@@ -22,7 +23,7 @@ export function ProjectChip() {
     >
       {project && (
         <>
-          <span className="text-accent">projeto {pad(index + 1)}/{pad(projects.length)}</span> · {project.name}
+          <span className="text-accent">{ui.chip.project} {pad(index + 1)}/{pad(projects.length)}</span> · {project.name}
         </>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useRef, type MouseEvent } from 'react'
 import { projects } from '@/content/projects'
 import { gsap, prefersReducedMotion, useGSAP } from '@/lib/motion'
 import { useScrollTo } from '@/lib/smooth-scroll'
+import { ui } from '@/i18n/ui'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -23,10 +24,10 @@ export function ProjectIndex() {
   return (
     <section ref={root} id="projetos" className="border-t border-line py-28">
       <div className="mx-auto max-w-[1200px] px-8">
-        <p className="label">// projetos</p>
-        <h2 className="mt-2.5 text-[clamp(2.1rem,4.4vw,3.5rem)] font-semibold tracking-[-0.03em]">Três sistemas, explicados por dentro</h2>
+        <p className="label">{ui.index.label}</p>
+        <h2 className="mt-2.5 text-[clamp(2.1rem,4.4vw,3.5rem)] font-semibold tracking-[-0.03em]">{ui.index.title}</h2>
         <p className="mt-3.5 max-w-[44em] text-[17px] leading-relaxed text-soft">
-          Cada projeto tem um diagrama que se monta enquanto você rola: o caminho de um pedido, do clique até a resposta, com o que acontece em cada parte.
+          {ui.index.text}
         </p>
         <ol data-list className="mt-11 border-t border-line">
           {projects.map((project, i) => (
@@ -41,7 +42,7 @@ export function ProjectIndex() {
                 <span className="text-2xl font-semibold tracking-[-0.02em]">{project.name}</span>
                 <span className="text-soft max-md:col-start-2">{project.summary}</span>
                 <span className="label max-md:col-start-2">{project.stack.slice(0, 3).join(' · ')}</span>
-                <span className="label text-right max-md:col-start-2 max-md:text-left">ver ↓</span>
+                <span className="label text-right max-md:col-start-2 max-md:text-left">{ui.index.see}</span>
               </a>
             </li>
           ))}
