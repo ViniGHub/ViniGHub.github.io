@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { profile } from '@/content/profile'
 import { gsap, prefersReducedMotion, useGSAP } from '@/lib/motion'
+import { Timeline } from './Timeline'
 
 export function About() {
   const root = useRef<HTMLElement>(null)
@@ -27,6 +28,7 @@ export function About() {
           ))}
         </dl>
       </div>
+      <Timeline />
     </section>
   )
 }
