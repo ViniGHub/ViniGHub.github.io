@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { caseStudyFor, caseStudyPath } from '@/content/case-studies'
 import type { Project } from '@/content/projects'
 import { gsap, prefersReducedMotion, useGSAP } from '@/lib/motion'
 import { useScrollTo } from '@/lib/smooth-scroll'
@@ -23,6 +24,7 @@ export function ProjectSection({ project, index, total }: { project: Project; in
   const scrollTo = useScrollTo()
   const { showcase } = project
   const tryHere = `${project.id}-testar`
+  const hasCaseStudy = caseStudyFor(project.id) !== undefined
   // A live demo opens straight away; the toy is further down the section.
   const tryIt = () => (showcase.kind === 'live' ? demo.open(project.id) : scrollTo(`#${tryHere}`))
 
@@ -72,8 +74,9 @@ export function ProjectSection({ project, index, total }: { project: Project; in
             <p className="mt-3.5 max-w-[44em] text-[17px] leading-relaxed text-soft">{project.description}</p>
             <p className="label mt-3.5">{project.stack.join(' · ')}</p>
           </div>
-          <div className="flex shrink-0 gap-3">
+          <div className="flex shrink-0 flex-wrap gap-3">
             <Button onClick={tryIt}>testar {showcase.kind === 'live' ? '▶' : '↓'}</Button>
+            {hasCaseStudy && <Button asChild><a href={caseStudyPath(project.id)}>estudo de caso →</a></Button>}
             <Button asChild><a href={project.links.code} target="_blank" rel="noreferrer">código ↗</a></Button>
           </div>
         </header>

@@ -1,6 +1,7 @@
 import { Command } from 'cmdk'
 import { Dialog } from 'radix-ui'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { caseStudyFor, caseStudyPath } from '@/content/case-studies'
 import { profile } from '@/content/profile'
 import { projects } from '@/content/projects'
 import { useLiveDemo } from '@/features/projects/live-demo'
@@ -91,6 +92,9 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
       {
         heading: 'abrir',
         actions: [
+          ...projects
+            .filter((p) => caseStudyFor(p.id))
+            .map((p) => ({ label: `estudo de caso do ${p.name}`, hint: 'página', keywords: ['decisões', 'case'], run: () => window.location.assign(caseStudyPath(p.id)) })),
           ...projects.map((p) => ({ label: `código do ${p.name}`, hint: 'github ↗', keywords: ['repositório', 'source'], run: () => window.open(p.links.code, '_blank', 'noopener') })),
           ...profile.links.map((link) => ({ label: link.label, hint: 'nova aba ↗', run: () => window.open(link.href, '_blank', 'noopener') })),
         ],

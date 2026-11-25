@@ -2,9 +2,10 @@ import type { Project } from '@/content/projects'
 
 /**
  * The drawing of a system: dashed guides underneath, then the wires and boxes that light up in order.
- * It only renders the start state; ProjectSection animates every element marked with data-step.
+ * On the home page it renders the start state and ProjectSection animates every element marked with
+ * data-step; `lit` draws the finished picture instead (the case study pages, which do not animate it).
  */
-export function SystemDiagram({ diagram }: { diagram: Project['diagram'] }) {
+export function SystemDiagram({ diagram, lit = false }: { diagram: Project['diagram']; lit?: boolean }) {
   return (
     <svg viewBox="0 0 640 320" className="w-full" role="img" aria-label={`Diagrama: ${diagram.caption}`}>
       {diagram.wires.map((wire) => (
@@ -22,7 +23,7 @@ export function SystemDiagram({ diagram }: { diagram: Project['diagram'] }) {
       ))}
       {diagram.nodes.map((node) => (
         <g key={node.label} data-step={node.step} data-kind="node" data-off={node.offStep}>
-          <rect x={node.x} y={node.y} width={node.w} height={60} rx={3} className="fill-node stroke-line-strong" />
+          <rect x={node.x} y={node.y} width={node.w} height={60} rx={3} className={lit && !node.offStep ? 'fill-node stroke-accent' : 'fill-node stroke-line-strong'} />
           <text x={node.x + 14} y={node.y + 26} className="fill-text font-mono text-[13px]">{node.label}</text>
           <text x={node.x + 14} y={node.y + 46} className="fill-muted font-mono text-[11px]">{node.sub}</text>
         </g>

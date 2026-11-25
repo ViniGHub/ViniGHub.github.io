@@ -1,47 +1,67 @@
-import { profile } from '@/content/profile'
+import { useEffect } from 'react'
+import { caseStudyFor } from '@/content/case-studies'
 import { projects } from '@/content/projects'
 import { About } from '@/features/about/About'
+import { CaseStudyPage } from '@/features/case-study/CaseStudyPage'
 import { Contact } from '@/features/contact/Contact'
 import { Hero } from '@/features/hero/Hero'
 import { CommandPaletteProvider } from '@/features/nav/command-palette'
 import { ProjectChip } from '@/features/nav/ProjectChip'
+import { SiteFooter } from '@/features/nav/SiteFooter'
 import { TopBar } from '@/features/nav/TopBar'
 import { LiveDemoProvider } from '@/features/projects/live-demo'
 import { ProjectIndex } from '@/features/projects/ProjectIndex'
 import { ProjectSection } from '@/features/projects/ProjectSection'
-import { SmoothScroll } from '@/lib/smooth-scroll'
+import { SmoothScroll, useScrollTo } from '@/lib/smooth-scroll'
+
+/** A case study lives at /projetos/<id>/ (the build writes one HTML file per study); anything else is the home page. */
+function currentCaseStudy() {
+  const id = window.location.pathname.match(/^\/projetos\/([^/]+)\/?$/)?.[1]
+  const study = id ? caseStudyFor(id) : undefined
+  const project = study && projects.find((p) => p.id === study.projectId)
+  return study && project ? { study, project } : null
+}
+
+/**
+ * Coming back from a case study ("/#projetos"), the section only exists after React draws the page and the
+ * pinned diagrams take their space, so the browser's own jump to the anchor misses it. This waits and scrolls.
+ */
+function ScrollToHash() {
+  const scrollTo = useScrollTo()
+  useEffect(() => {
+    const target = window.location.hash
+    if (!target || !document.querySelector(target)) return
+    const timer = window.setTimeout(() => scrollTo(target), 400)
+    return () => window.clearTimeout(timer)
+  }, [scrollTo])
+  return null
+}
+
+function Home() {
+  return (
+    <CommandPaletteProvider>
+      <ScrollToHash />
+      <TopBar />
+      <main>
+        <Hero />
+        <ProjectIndex />
+        {projects.map((project, i) => (
+          <ProjectSection key={project.id} project={project} index={i} total={projects.length} />
+        ))}
+        <About />
+        <Contact />
+      </main>
+      <SiteFooter />
+      <ProjectChip />
+    </CommandPaletteProvider>
+  )
+}
 
 export function App() {
+  const caseStudy = currentCaseStudy()
   return (
     <SmoothScroll>
-      <LiveDemoProvider>
-        <CommandPaletteProvider>
-          <TopBar />
-          <main>
-            <Hero />
-            <ProjectIndex />
-            {projects.map((project, i) => (
-              <ProjectSection key={project.id} project={project} index={i} total={projects.length} />
-            ))}
-            <About />
-            <Contact />
-          </main>
-          <footer className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-x-8 gap-y-2 border-t border-line px-8 pt-6 pb-10 font-mono text-xs text-muted">
-            <span>feito com react, gsap e three.js</span>
-            {/* The avatar comes from Meshy's free plan, licensed CC BY 4.0: the license asks for this credit. */}
-            {profile.avatarModel && (
-              <span>
-                avatar 3D gerado no{' '}
-                <a href="https://www.meshy.ai" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-text">Meshy</a>
-                , otimizado para a web ·{' '}
-                <a href="https://creativecommons.org/licenses/by/4.0/deed.pt-br" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-text">CC BY 4.0</a>
-              </span>
-            )}
-            <span>© 2026</span>
-          </footer>
-          <ProjectChip />
-        </CommandPaletteProvider>
-      </LiveDemoProvider>
+      <LiveDemoProvider>{caseStudy ? <CaseStudyPage study={caseStudy.study} project={caseStudy.project} /> : <Home />}</LiveDemoProvider>
     </SmoothScroll>
   )
 }
